@@ -1,0 +1,18 @@
+build/
+cmake-build-*/
+
+# CMake generated files
+CMakeUserPresets.json
+compile_commands.json
+
+# STM32 build artifacts
+*.elf
+*.hex
+*.bin
+*.map
+*.list
+*.su
+
+# IDE and local tool files
+.vs/
+.vscode/*.log
