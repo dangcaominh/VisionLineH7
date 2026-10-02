@@ -4,7 +4,7 @@ setlocal EnableExtensions
 cd /d "%~dp0"
 for %%I in ("%~dp0.") do set "PROJECT=%%~nxI"
 set "FLASH_ADDRESS=0x08000000"
-set "STM32_DEVICE=STM32F427VI"
+set "STM32_DEVICE=STM32H743VI"
 set "STM32_PORT=SWD"
 set "STM32_PROGRAMMER_CLI=STM32_Programmer_CLI.exe"
 
