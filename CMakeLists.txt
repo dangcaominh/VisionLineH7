@@ -12,6 +12,9 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
+file(GLOB_RECURSE OV5640_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/OV5640/*.c")
+file(GLOB_RECURSE APPLICATION_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Src/*.c")
+
 
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -46,11 +49,15 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
+    ${OV5640_SOURCES}
+    ${APPLICATION_SOURCES}
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    Drivers/OV5640
+    Application/Inc
 )
 
 # Add project symbols (macros)

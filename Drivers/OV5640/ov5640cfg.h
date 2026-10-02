@@ -4,7 +4,7 @@
 #include "ov5640_reg.h"
 
 
-const uint16_t OV5640_jpeg_reg_tbl[][2]=
+const uint16_t OV5640_jpeg_reg_tbl[]=
 {
 	0x4300, 0x30, // YUV 422, YUYV
 	0x501f, 0x00, // YUV 422
@@ -60,7 +60,7 @@ const uint16_t OV5640_jpeg_reg_tbl[][2]=
 };
 
 
-const uint16_t ov5640_rgb565_reg_tbl[][2]=
+const uint16_t ov5640_rgb565_reg_tbl[]=
 {
         0x4300, 0X6F,
 	0X501F, 0x01,
@@ -112,7 +112,7 @@ const uint16_t ov5640_rgb565_reg_tbl[][2]=
 	0x3503, 0x00, // AEC/AGC on      
 };
 
-const uint16_t ov5640_init_reg_tbl[][2]=
+const uint16_t ov5640_init_reg_tbl[]=
 {
 	// 24MHz input clock, 24MHz PCLK
 	0x3008, 0x42, // software power down, bit[6]
