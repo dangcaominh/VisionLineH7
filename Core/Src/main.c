@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ov5640.h"
+#include "usbd_cdc_acm_if.h"
 #include "sys_mode.h"
 /* USER CODE END Includes */
 
@@ -67,7 +68,7 @@ static void MPU_Config(void);
 int _write(int file, char* data, int len)
 {
 	UNUSED(file);
-	//CDC_Transmit(0, (uint8_t*)data, len);
+	CDC_Transmit(0, (uint8_t*)data, len);
 	return len;
 }
 /* USER CODE END 0 */
@@ -120,7 +121,7 @@ int main(void)
   MX_TIM4_Init();
   MX_USB_OTG_HS_PCD_Init();
   /* USER CODE BEGIN 2 */
-	//MX_USB_DEVICE_Init(); 
+	MX_USB_DEVICE_Init(); 
   sys_mode_t current_mode = sys_mode_init();
   /* USER CODE END 2 */
 

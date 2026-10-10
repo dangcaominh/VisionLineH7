@@ -13,6 +13,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
 file(GLOB_RECURSE OV5640_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/OV5640/*.c")
+file(GLOB_RECURSE USB_COMPOSITE_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/USB_COMPOSITE/*.c")
 file(GLOB_RECURSE APPLICATION_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Src/*.c")
 
 
@@ -50,6 +51,7 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     ${OV5640_SOURCES}
+    ${USB_COMPOSITE_SOURCES}
     ${APPLICATION_SOURCES}
 )
 
@@ -57,6 +59,13 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
     Drivers/OV5640
+    Drivers/USB_COMPOSITE
+    Drivers/USB_COMPOSITE/App
+    Drivers/USB_COMPOSITE/Target
+    Drivers/USB_COMPOSITE/Class/CDC_ACM/Inc
+    Drivers/USB_COMPOSITE/Class/COMPOSITE/Inc
+    Drivers/USB_COMPOSITE/Class/VIDEO/Inc
+    Drivers/USB_COMPOSITE/Core/Inc
     Application/Inc
 )
 
