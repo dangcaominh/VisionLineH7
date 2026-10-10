@@ -137,20 +137,20 @@ int main(void)
 	 * @brief  Lựa chọn chế độ hoạt động ngay khi vừa boot
 	 * @param  mode: Dữ liệu đọc từ công tắc gạt
 	 * @param 0x0: Sensor calibration
-	 * @param 0x1: Cổng USB Highspeed được dùng làm DFU
-	 * @param 0x2: Cổng USB Highspeed được dùng làm USB Webcam
-	 * @param 0x3: Chạy test ADC
-	 * @param 0x4: Chạy test motor và encoder
-	 * @param 0x5: Chạy application dò line bằng sensor
-	 * @param 0x6: Chạy application dò line bằng camera
-	 * @param 0x7: Chạy application chính
-	 * @param
+	 * @param 0x1: Cổng USB Highspeed được dùng làm USB Webcam
+	 * @param 0x2: Chạy test ADC
+	 * @param 0x3: Chạy test motor và encoder
+	 * @param 0x4: Chạy application dò line bằng sensor
+	 * @param 0x5: Chạy application dò line bằng camera
+   * @param 0x6: Chạy application chính
+   * @param 0x7: Cổng USB Highspeed được dùng làm DFU
+   * @param
 	 */
 	uint8_t mode = (HAL_GPIO_ReadPin(PRG_MODE0_GPIO_Port, PRG_MODE0_Pin) << 0) |
 		(HAL_GPIO_ReadPin(PRG_MODE1_GPIO_Port, PRG_MODE1_Pin) << 1) |
     (HAL_GPIO_ReadPin(PRG_MODE2_GPIO_Port, PRG_MODE2_Pin) << 2);
 
-  if (mode != 1)
+  if (mode != 7)
   {
     Bootloader_JumpToApplication();
   }

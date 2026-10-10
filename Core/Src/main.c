@@ -28,8 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ov5640.h"
-#include "usbd_cdc_acm_if.h"
-#include "app_mode.h"
+#include "sys_mode.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +67,7 @@ static void MPU_Config(void);
 int _write(int file, char* data, int len)
 {
 	UNUSED(file);
-	CDC_Transmit(0, (uint8_t*)data, len);
+	//CDC_Transmit(0, (uint8_t*)data, len);
 	return len;
 }
 /* USER CODE END 0 */
@@ -121,50 +120,15 @@ int main(void)
   MX_TIM4_Init();
   MX_USB_OTG_HS_PCD_Init();
   /* USER CODE BEGIN 2 */
-	MX_USB_DEVICE_Init(); 
-	/**
-	 * @brief  Lựa chọn chế độ hoạt động ngay khi vừa boot
-	 * @param  mode: Dữ liệu đọc từ công tắc gạt
-	 * @param 0x0: Sensor calibration
-	 * @param 0x1: Cổng USB Highspeed được dùng làm DFU
-	 * @param 0x2: Cổng USB Highspeed được dùng làm USB Webcam
-	 * @param 0x3: Chạy test ADC
-	 * @param 0x4: Chạy test motor và encoder
-	 * @param 0x5: Chạy application dò line bằng sensor
-	 * @param 0x6: Chạy application dò line bằng camera
-	 * @param 0x7: Chạy application chính
-	 * @param
-	 */
-	uint8_t mode = (HAL_GPIO_ReadPin(PRG_MODE0_GPIO_Port, PRG_MODE0_Pin) << 0) |
-		(HAL_GPIO_ReadPin(PRG_MODE1_GPIO_Port, PRG_MODE1_Pin) << 1) |
-		(HAL_GPIO_ReadPin(PRG_MODE2_GPIO_Port, PRG_MODE2_Pin) << 2);
-	switch (mode)
-	{
-	case MODE_SENSOR_CALIB:
-		
-		break;
-	case MODE_USB_WEBCAM:
-		break;
-	case MODE_LINE_SENSOR:
-		break;
-	case MODE_LINE_CAMERA:
-		break;
-	case MODE_DFU:
-		break;
-	case MODE_TEST_ADC:
-		break;
-	case MODE_TEST_MOTOR:
-		break;
-	case MODE_NORMAL:
-		break;
-	}
-	
+	//MX_USB_DEVICE_Init(); 
+  sys_mode_t current_mode = sys_mode_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
-	{
+  {
+    sys_mode_run(current_mode);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
