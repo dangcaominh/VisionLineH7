@@ -123,13 +123,16 @@ int main(void)
 	/* USER CODE BEGIN 2 */
 	MX_USB_DEVICE_Init();
 	sys_mode_t current_mode = sys_mode_init();
+	sys_mode_run(current_mode);
+	sys_mode_stop(current_mode);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		sys_mode_run(current_mode);
+		printf("Run mode %d complete\r\n", (int)current_mode);
+		HAL_Delay(1000);
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */

@@ -62,5 +62,6 @@ typedef struct
 sys_mode_t sys_mode_init(void);
 const sys_mode_handle *sys_mode_get_descriptor(sys_mode_t mode);
 int sys_mode_run(sys_mode_t mode);
+int sys_mode_stop(sys_mode_t mode);
 
 #endif /* SYS_MODE_H_ */

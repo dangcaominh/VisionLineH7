@@ -41,12 +41,12 @@ void tb6612fng_init()
 
 /**
  * @brief Set the rotation direction of one motor.
- * @param id Motor to configure, either `MOTOR_LEFT` or `MOTOR_RIGHT`.
+ * @param id Motor to configure, either `MOTOR_LEFT` or `MOTOR_RIGHT` or `MOTOR_ALL`.
  * @param direction Rotation direction, either `MOTOR_FORWARD` or
  *                  `MOTOR_REVERSE`.
  * @return 0 on success; -1 if the motor ID or direction is invalid.
  */
-int tb6612_set_direction(motor_id_t id, direction_t direction)
+int tb6612fng_set_direction(motor_id_t id, direction_t direction)
 {
     GPIO_PinState in1;
     GPIO_PinState in2;
@@ -67,12 +67,12 @@ int tb6612_set_direction(motor_id_t id, direction_t direction)
         return -1;
     }
 
-    if(id == MOTOR_LEFT)
+    if(id == MOTOR_LEFT || id == MOTOR_ALL)
     {
         HAL_GPIO_WritePin(AIN_1_GPIO_Port, AIN_1_Pin, in1);
         HAL_GPIO_WritePin(AIN_2_GPIO_Port, AIN_2_Pin, in2);
     }
-    else if(id == MOTOR_RIGHT)
+    else if(id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
         HAL_GPIO_WritePin(BIN_1_GPIO_Port, BIN_1_Pin, in1);
         HAL_GPIO_WritePin(BIN_2_GPIO_Port, BIN_2_Pin, in2);
@@ -88,18 +88,18 @@ int tb6612_set_direction(motor_id_t id, direction_t direction)
 
 /**
  * @brief Set the PWM duty compare value for one motor.
- * @param id Motor to configure, either `MOTOR_LEFT` or `MOTOR_RIGHT`.
+ * @param id Motor to configure, either `MOTOR_LEFT` or `MOTOR_RIGHT` or `MOTOR_ALL`.
  * @param duty PWM compare value used to control motor speed. Its valid range
  *             is defined by the timer period configured for `htim1`.
  * @return 0 on success; -1 if the motor ID is invalid.
  */
 int tb6612fng_set_speed(motor_id_t id, uint32_t duty)
 {
-    if(id == MOTOR_LEFT)
+    if(id == MOTOR_LEFT || id == MOTOR_ALL)
     {
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, duty);
     }
-    else if(id == MOTOR_RIGHT)
+    else if(id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, duty);
     }

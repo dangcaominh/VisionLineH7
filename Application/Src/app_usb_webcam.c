@@ -13,7 +13,12 @@
 
 #include "main.h"
 #include "sys_mode.h"
+#include <stdio.h>
+#include <stdbool.h>
 #include "app_usb_webcam.h"
+#include "ov5640.h"
+
+bool uvc_enable = false;
 
 const struct sys_mode_api usb_webcam_api =
 {
@@ -22,8 +27,11 @@ const struct sys_mode_api usb_webcam_api =
     .stop = usb_webcam_stop
 };
 
+
+
 static int usb_webcam_init()
 {
+    uvc_enable = true;
     return 0;
 }
 
@@ -34,5 +42,5 @@ static void usb_webcam_run()
 
 static void usb_webcam_stop()
 {
-
+    uvc_enable = false;
 }

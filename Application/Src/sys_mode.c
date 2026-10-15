@@ -102,3 +102,29 @@ int sys_mode_run(sys_mode_t mode)
 
     return 0;
 }
+
+
+/**
+ * @brief Stop selected mode
+ */
+int sys_mode_stop(sys_mode_t mode)
+{
+    if (mode >= SYS_MODE_COUNT) {
+        printf("Invalid mode\r\n");
+        return ERR_INVAL;
+    }
+
+    const sys_mode_handle* handle = &sys_mode_table[mode];
+    const struct sys_mode_api* api = handle->api;
+
+    if (api && api->stop) {
+        api->stop();
+    }
+    else
+    {
+        printf("Invalid api struct or api run pointer\r\n");
+        return ERR_INVAL;
+    }
+
+    return 0;
+}
