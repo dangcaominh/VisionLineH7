@@ -234,6 +234,13 @@ SECTIONS
     . = ALIGN(32);
   } >RAM_D2
 
+   .image_buffer (NOLOAD) : ALIGN(32)
+  {
+    *(.image_buffer)
+    *(.image_buffer*)
+    . = ALIGN(32);
+  } >RAM
+
   PROVIDE( __bss_start = __tbss_start );
   PROVIDE( __bss_size = __bss_end - __bss_start );
 

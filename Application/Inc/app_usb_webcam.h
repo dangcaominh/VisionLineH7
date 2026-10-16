@@ -14,6 +14,8 @@
 #ifndef APP_USB_WEBCAM_H_
 #define APP_USB_WEBCAM_H_
 
+#define JPEG_SIZE   20 * 1024
+
 static int usb_webcam_init();
 static void usb_webcam_run();
 static void usb_webcam_stop();

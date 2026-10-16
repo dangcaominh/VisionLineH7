@@ -17,8 +17,17 @@
 #include <stdbool.h>
 #include "app_usb_webcam.h"
 #include "ov5640.h"
+#include "usbd_video_if.h"
 
-bool uvc_enable = false;
+struct video_handle_t video;
+
+/* Default assignment to avoid NULL pointer */
+extern struct video_handle_t* video_ptr = &video;
+
+
+
+uint8_t jpeg[JPEG_SIZE] __attribute__((aligned(32), section(".image_buffer")));
+
 
 const struct sys_mode_api usb_webcam_api =
 {
@@ -31,7 +40,11 @@ const struct sys_mode_api usb_webcam_api =
 
 static int usb_webcam_init()
 {
-    uvc_enable = true;
+    OV5640_Init();
+    video.buffer = jpeg;
+    video.offset = 0;
+    video.size = 0;
+    video.ready = false;
     return 0;
 }
 
@@ -42,5 +55,5 @@ static void usb_webcam_run()
 
 static void usb_webcam_stop()
 {
-    uvc_enable = false;
+    video.ready = false;
 }

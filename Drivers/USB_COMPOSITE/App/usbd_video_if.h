@@ -27,64 +27,15 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_video.h"
+#include <stdbool.h>
 
-/* USER CODE BEGIN INCLUDE */
-
-/* USER CODE END INCLUDE */
-
-/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
-  * @brief For Usb device.
-  * @{
-  */
-
-/** @defgroup USBD_VIDEO_IF
-  * @brief Usb VIDEO interface device module.
-  * @{
-  */
-
-/** @defgroup USBD_VIDEO_IF_Exported_Defines
-  * @brief Defines.
-  * @{
-  */
-
-/* USER CODE BEGIN EXPORTED_DEFINES */
-
-/* USER CODE END EXPORTED_DEFINES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_VIDEO_IF_Exported_Types
-  * @brief Types.
-  * @{
-  */
-
-/* USER CODE BEGIN EXPORTED_TYPES */
-
-/* USER CODE END EXPORTED_TYPES */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_VIDEO_IF_Exported_Macros
-  * @brief Aliases.
-  * @{
-  */
-
-/* USER CODE BEGIN EXPORTED_MACRO */
-
-/* USER CODE END EXPORTED_MACRO */
-
-/**
-  * @}
-  */
-
-/** @defgroup USBD_VIDEO_IF_Exported_Variables
-  * @brief Public variables.
-  * @{
-  */
+struct video_handle_t
+{
+	uint8_t *buffer;
+	uint32_t offset;
+	uint32_t size;
+	bool ready;		/* Buffer is ready to transmit */
+};
 
 /** VIDEO_IF Interface callback. */
 extern USBD_VIDEO_ItfTypeDef USBD_VIDEO_fops_FS;
@@ -95,11 +46,6 @@ extern USBD_VIDEO_ItfTypeDef USBD_VIDEO_fops_FS;
 
 /**
   * @}
-  */
-
-/** @defgroup USBD_VIDEO_IF_Exported_FunctionsPrototype
-  * @brief Public functions declaration.
-  * @{
   */
 
 /**

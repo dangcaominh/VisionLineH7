@@ -1,4 +1,18 @@
+/**
+  ******************************************************************************
+  * @file    ov5640.c
+  * @brief   Provide driver code for OV5640 camera
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2026 Dang Cao Minh <dangcaominhheo@gmail.com>
+  * SPDX-License-Identifier: Apache-2.0
+  *
+  ******************************************************************************
+  */
+
 #include <stdio.h>
+#include <stdint.h>
 #include "main.h"
 #include "ov5640.h"
 #include "ov5640cfg.h"
@@ -6,15 +20,6 @@
 
 extern I2C_HandleTypeDef hi2c1;
 
-
-const uint16_t jpeg_size_tbl[][2] =
-{
-	{ 160, 120 },	//QQVGA
-	{ 176, 144 },	//QCIF
-	{ 320, 240 },	//QVGA
-	{ 400, 240 },	//WQVGA
-	{ 352, 288 }	//CIF
-};
 
 /**
   * @brief  Ghi 1 byte vào thanh ghi OV5640 thông qua Hardware I2C1
@@ -59,21 +64,21 @@ uint8_t OV5640_Init(void)
 	}
 	HAL_Delay(10);
 
-	for (i = 0; i < sizeof(ov5640_init_reg_tbl) / (2 * sizeof(ov5640_init_reg_tbl[0])); i++)
+	for (i = 0; i < sizeof(ov5640_init) / (2 * sizeof(ov5640_init[0])); i++)
 	{
-		OV5640_WR_Reg(ov5640_init_reg_tbl[i * 2], ov5640_init_reg_tbl[i * 2 + 1]);
+		OV5640_WR_Reg(ov5640_init[i * 2], ov5640_init[i * 2 + 1]);
 	}
 
-	return 0x00; 	//ok
+	return 0x00;
 }
 
 void OV5640_JPEG_Mode(void)
 {
 	uint16_t i = 0;
 
-	for (i = 0; i < sizeof(OV5640_jpeg_reg_tbl) / (2 * sizeof(OV5640_jpeg_reg_tbl[0])); i++)
+	for (i = 0; i < sizeof(OV5640_jpeg_init) / (2 * sizeof(OV5640_jpeg_init[0])); i++)
 	{
-		OV5640_WR_Reg(OV5640_jpeg_reg_tbl[i * 2], OV5640_jpeg_reg_tbl[i * 2 + 1]);
+		OV5640_WR_Reg(OV5640_jpeg_init[i * 2], OV5640_jpeg_init[i * 2 + 1]);
 	}
 }
 
@@ -81,32 +86,21 @@ void OV5640_RGB565_Mode(void)
 {
 	uint16_t i = 0;
 
-	for (i = 0; i < sizeof(ov5640_rgb565_reg_tbl) / (2 * sizeof(ov5640_rgb565_reg_tbl[0])); i++)
+	for (i = 0; i < sizeof(ov5640_rgb565_init) / (2 * sizeof(ov5640_rgb565_init[0])); i++)
 	{
-		OV5640_WR_Reg(ov5640_rgb565_reg_tbl[i * 2], ov5640_rgb565_reg_tbl[i * 2 + 1]);
+		OV5640_WR_Reg(ov5640_rgb565_init[i * 2], ov5640_rgb565_init[i * 2 + 1]);
 	}
 }
-
-static const uint8_t OV5640_EXPOSURE_TBL[7][6] =
-{
-	{ 0x10,0x08,0x10,0x08,0x20,0x10 },	//-3  
-	{ 0x20,0x18,0x41,0x20,0x18,0x10 },	//-2
-	{ 0x30,0x28,0x61,0x30,0x28,0x10 },	//-1 
-	{ 0x38,0x30,0x61,0x38,0x30,0x10 },	//0  
-	{ 0x40,0x38,0x71,0x40,0x38,0x10 },	//+1 
-	{ 0x50,0x48,0x90,0x50,0x48,0x20 },	//+2   
-	{ 0x60,0x58,0xa0,0x60,0x58,0x20 }	//+3    
-};
 
 void OV5640_Exposure(uint8_t exposure)
 {
 	OV5640_WR_Reg(0x3212, 0x03);	//start group 3
-	OV5640_WR_Reg(0x3a0f, OV5640_EXPOSURE_TBL[exposure][0]);
-	OV5640_WR_Reg(0x3a10, OV5640_EXPOSURE_TBL[exposure][1]);
-	OV5640_WR_Reg(0x3a1b, OV5640_EXPOSURE_TBL[exposure][2]);
-	OV5640_WR_Reg(0x3a1e, OV5640_EXPOSURE_TBL[exposure][3]);
-	OV5640_WR_Reg(0x3a11, OV5640_EXPOSURE_TBL[exposure][4]);
-	OV5640_WR_Reg(0x3a1f, OV5640_EXPOSURE_TBL[exposure][5]);
+	OV5640_WR_Reg(0x3a0f, ov5640_exposure[exposure][0]);
+	OV5640_WR_Reg(0x3a10, ov5640_exposure[exposure][1]);
+	OV5640_WR_Reg(0x3a1b, ov5640_exposure[exposure][2]);
+	OV5640_WR_Reg(0x3a1e, ov5640_exposure[exposure][3]);
+	OV5640_WR_Reg(0x3a11, ov5640_exposure[exposure][4]);
+	OV5640_WR_Reg(0x3a1f, ov5640_exposure[exposure][5]);
 	OV5640_WR_Reg(0x3212, 0x13); //end group 3
 	OV5640_WR_Reg(0x3212, 0xa3); //launch group 3
 }
