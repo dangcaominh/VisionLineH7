@@ -25,26 +25,25 @@
 #define   CIF_352_288      4
 
 
-uint8_t OV5640_WR_Reg(uint16_t reg,uint8_t data);
-uint8_t OV5640_RD_Reg(uint16_t reg);
-uint8_t OV5640_Init(void);  
-void OV5640_JPEG_Mode(void);
-void OV5640_RGB565_Mode(void);
-void OV5640_Exposure(uint8_t exposure);
-void OV5640_Light_Mode(uint8_t mode);
-void OV5640_Color_Saturation(uint8_t sat);
-void OV5640_Brightness(uint8_t bright);
-void OV5640_Contrast(uint8_t contrast);
-void OV5640_Sharpness(uint8_t sharp);
-void OV5640_Special_Effects(uint8_t eft);
-void OV5640_Test_Pattern(uint8_t mode);
-void OV5640_Flash_Lamp(uint8_t sw);
-uint8_t OV5640_OutSize_Set(uint16_t offx,uint16_t offy,uint16_t width,uint16_t height);
-uint8_t OV5640_Focus_Init(void);
-uint8_t OV5640_Auto_Focus(void);
+uint8_t ov5640_wr_reg(uint16_t reg, uint8_t data);
+uint8_t ov5640_rd_reg(uint16_t reg);
+uint8_t ov5640_init(void);
+void ov5640_jpeg_mode(void);
+void ov5640_rgb565_mode(void);
+void ov5640_exposure(uint8_t exposure);
+void ov5640_light_mode(uint8_t mode);
+void ov5640_color_saturation(uint8_t sat);
+void ov5640_brightness(uint8_t bright);
+void ov5640_contrast(uint8_t contrast);
+void ov5640_sharpness(uint8_t sharp);
+void ov5640_special_effects(uint8_t eft);
+void ov5640_test_pattern(uint8_t mode);
+void ov5640_flash_lamp(uint8_t sw);
+uint8_t ov5640_out_size_set(uint16_t offx, uint16_t offy, uint16_t width, uint16_t height);
+uint8_t ov5640_focus_init(void);
+uint8_t ov5640_auto_focus(void);
 
 #endif
-
 
 
 

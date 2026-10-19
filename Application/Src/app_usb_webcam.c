@@ -37,7 +37,7 @@ const struct sys_mode_api usb_webcam_api =
 
 static int usb_webcam_init()
 {
-    OV5640_Init();
+    ov5640_init();
     video.buffer = jpeg;
     video.offset = 0;
     video.size = 0;

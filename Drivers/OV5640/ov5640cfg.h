@@ -1,378 +1,373 @@
 #ifndef _OV5640CFG_H
 #define _OV5640CFG_H
-#include "ov5640.h" 
+#include "ov5640.h"
 #include "ov5640_reg.h"
 
-const uint8_t ov5640_exposure[7][6] =
+const uint8_t ov5640_exposure_table[7][6] =
 {
-	{ 0x10,0x08,0x10,0x08,0x20,0x10 },	//-3  
-	{ 0x20,0x18,0x41,0x20,0x18,0x10 },	//-2
-	{ 0x30,0x28,0x61,0x30,0x28,0x10 },	//-1 
-	{ 0x38,0x30,0x61,0x38,0x30,0x10 },	//0  
-	{ 0x40,0x38,0x71,0x40,0x38,0x10 },	//+1 
-	{ 0x50,0x48,0x90,0x50,0x48,0x20 },	//+2   
-	{ 0x60,0x58,0xa0,0x60,0x58,0x20 }	//+3    
+	{ 0x10,0x08,0x10,0x08,0x20,0x10 },	// Exposure -3
+	{ 0x20,0x18,0x41,0x20,0x18,0x10 },	// Exposure -2
+	{ 0x30,0x28,0x61,0x30,0x28,0x10 },	// Exposure -1
+	{ 0x38,0x30,0x61,0x38,0x30,0x10 },	// Exposure 0
+	{ 0x40,0x38,0x71,0x40,0x38,0x10 },	// Exposure +1
+	{ 0x50,0x48,0x90,0x50,0x48,0x20 },	// Exposure +2
+	{ 0x60,0x58,0xa0,0x60,0x58,0x20 }	// Exposure +3
 };
 
-const uint8_t ov5640_light_mode[5][7] =
+const uint8_t ov5640_light_mode_table[5][7] =
 {
-	{ 0x04,0X00,0X04,0X00,0X04,0X00,0X00 },	//Auto 
-	{ 0x06,0X1C,0X04,0X00,0X04,0XF3,0X01 },	//Sunny
-	{ 0x05,0X48,0X04,0X00,0X07,0XCF,0X01 },	//Office
-	{ 0x06,0X48,0X04,0X00,0X04,0XD3,0X01 },	//Cloudy
-	{ 0x04,0X10,0X04,0X00,0X08,0X40,0X01 }	//Home
+	{ 0x04,0X00,0X04,0X00,0X04,0X00,0X00 },	// Auto white balance
+	{ 0x06,0X1C,0X04,0X00,0X04,0XF3,0X01 },	// Daylight white balance
+	{ 0x05,0X48,0X04,0X00,0X07,0XCF,0X01 },	// Office lighting
+	{ 0x06,0X48,0X04,0X00,0X04,0XD3,0X01 },	// Cloudy lighting
+	{ 0x04,0X10,0X04,0X00,0X08,0X40,0X01 }	// Indoor lighting
 };
 
-const uint8_t ov5640_saturation[7][6] =
+const uint8_t ov5640_saturation_table[7][6] =
 {
-	{ 0X0C,0x30,0X3D,0X3E,0X3D,0X01 },	//-3 
-	{ 0X10,0x3D,0X4D,0X4E,0X4D,0X01 },	//-2	
-	{ 0X15,0x52,0X66,0X68,0X66,0X02 },	//-1	
-	{ 0X1A,0x66,0X80,0X82,0X80,0X02 },	//+0	
-	{ 0X1F,0x7A,0X9A,0X9C,0X9A,0X02 },	//+1	
-	{ 0X24,0x8F,0XB3,0XB6,0XB3,0X03 },	//+2
-	{ 0X2B,0xAB,0XD6,0XDA,0XD6,0X04 }	//+3
+	{ 0X0C,0x30,0X3D,0X3E,0X3D,0X01 },	// Saturation -3
+	{ 0X10,0x3D,0X4D,0X4E,0X4D,0X01 },	// Saturation -2
+	{ 0X15,0x52,0X66,0X68,0X66,0X02 },	// Saturation -1
+	{ 0X1A,0x66,0X80,0X82,0X80,0X02 },	// Saturation 0
+	{ 0X1F,0x7A,0X9A,0X9C,0X9A,0X02 },	// Saturation +1
+	{ 0X24,0x8F,0XB3,0XB6,0XB3,0X03 },	// Saturation +2
+	{ 0X2B,0xAB,0XD6,0XDA,0XD6,0X04 }	// Saturation +3
 };
 
 const uint16_t ov5640_jpeg_init[] =
 {
-	0x4300, 0x30, // YUV 422, YUYV
-	0x501f, 0x00, // YUV 422
-	// Input clock = 24Mhz
-	0x3035, 0x21, // PLL  
-	0x3036, 0x69, // PLL 
-	0x3c07, 0x07, // lightmeter 1 threshold[7:0] 
-	0x3820, 0x46, // flip
-	0x3821, 0x20, // mirror									 
-	0x3814, 0x31, // timing X inc 
-	0x3815, 0x31, // timing Y inc 
-	0x3800, 0x00, // HS 
-	0x3801, 0x00, // HS 
-	0x3802, 0x00, // VS 
-	0x3803, 0x00, // VS 
-	0x3804, 0x05, // HW (HE)
-	0x3805, 0x1f, // HW (HE)
-	0x3806, 0x03, // VH (VE)
-	0x3807, 0x5f, // VH (VE)
-	
-	0x3808, 0x01, // DVPHO
-	0x3809, 0x40, // DVPHO
-	0x380a, 0x00, // DVPVO
-	0x380b, 0xf0, // DVPVO
+	OV5640_FORMAT_CTRL00, 0x30, // YUV422 YUYV output
+	OV5640_FORMAT_MUX_CTRL, 0x00, // Route YUV422 to the output
+	// Configure the sensor clock and frame timing.
+	OV5640_SC_PLL_CONTRL1, 0x21, // PLL divider
+	OV5640_SC_PLL_CONTRL2, 0x69, // PLL multiplier
+	OV5640_LIGHTMETER1_TH_LOW, 0x07, // Light-meter threshold
+	OV5640_TIMING_TC_REG20, 0x46, // Vertical flip
+	OV5640_TIMING_TC_REG21, 0x20, // Horizontal mirror
+	OV5640_TIMING_X_INC, 0x31, // Horizontal sampling
+	OV5640_TIMING_Y_INC, 0x31, // Vertical sampling
+	OV5640_TIMING_HS_HIGH, 0x00, // Crop start X high byte
+	OV5640_TIMING_HS_LOW, 0x00, // Crop start X low byte
+	OV5640_TIMING_VS_HIGH, 0x00, // Crop start Y high byte
+	OV5640_TIMING_VS_LOW, 0x00, // Crop start Y low byte
+	OV5640_TIMING_HW_HIGH, 0x05, // Crop end X high byte
+	OV5640_TIMING_HW_LOW, 0x1f, // Crop end X low byte
+	OV5640_TIMING_VH_HIGH, 0x03, // Crop end Y high byte
+	OV5640_TIMING_VH_LOW, 0x5f, // Crop end Y low byte
 
-	0x380c, 0x05, // HTS
-	0x380d, 0x98, // HTS
-	0x380e, 0x01, // VTS
-	0x380f, 0xF0, // VTS
+	OV5640_TIMING_DVPHO_HIGH, 0x01, // Output width high byte
+	OV5640_TIMING_DVPHO_LOW, 0x40, // Output width low byte
+	OV5640_TIMING_DVPVO_HIGH, 0x00, // Output height high byte
+	OV5640_TIMING_DVPVO_LOW, 0xf0, // Output height low byte
 
-	0x3813, 0x04, // timing V offset   04
-	0x3618, 0x00,
-	0x3612, 0x29,
-	0x3709, 0x52,
-	0x370c, 0x03, 
-        
-    0x3a02, 0x02, // 60Hz max exposure
-	0x3a03, 0xe0, // 60Hz max exposure 
-	0x3a14, 0x02, // 50Hz max exposure
-	0x3a15, 0xe0, // 50Hz max exposure        
-	
-	0x4004, 0x06, // BLC line number 
-	0x3002, 0x00, // enable JFIFO, SFIFO, JPG 
-	0x3006, 0xff, // enable clock of JPEG2x, JPEG
-	0x4713, 0x03, // JPEG mode 3
-	0x4407, 0x02, // Quantization sacle 
-	0x460b, 0x35,
-	0x460c, 0x22,
-	0x4837, 0x16, // MIPI global timing 
-	0x3824, 0x02, // PCLK manual divider 
-	0x5001, 0xA3, // SDE on, Scaling on, CMX on, AWB on 
-	0x3503, 0x00, // AEC/AGC on	
+	OV5640_TIMING_HTS_HIGH, 0x05, // Horizontal total high byte
+	OV5640_TIMING_HTS_LOW, 0x98, // Horizontal total low byte
+	OV5640_TIMING_VTS_HIGH, 0x01, // Vertical total high byte
+	OV5640_TIMING_VTS_LOW, 0xF0, // Vertical total low byte
+
+	OV5640_TIMING_VOFFSET_LOW, 0x04, // Vertical timing offset
+	OV5640_REG_3618, 0x00,
+	OV5640_REG_3612, 0x29,
+	OV5640_REG_3709, 0x52,
+	OV5640_REG_370C, 0x03,
+
+    OV5640_AEC_CTRL02, 0x02, // 60 Hz exposure high byte
+	OV5640_AEC_CTRL03, 0xe0, // 60 Hz exposure low byte
+	OV5640_AEC_MAX_EXPO_HIGH, 0x02, // 50 Hz exposure high byte
+	OV5640_AEC_MAX_EXPO_LOW, 0xe0, // 50 Hz exposure low byte
+
+	OV5640_BLC_CTRL04, 0x06, // Black-level correction lines
+	OV5640_SYSREM_RESET02, 0x00, // Enable JPEG data paths
+	OV5640_CLOCK_ENABLE02, 0xff, // Enable JPEG clocks
+	OV5640_JPG_MODE_SELECT, 0x03, // Select JPEG mode
+	OV5640_JPEG_CTRL07, 0x02, // JPEG quantization scale
+	OV5640_REG_460B, 0x35,
+	OV5640_VFIFO_CTRL0C, 0x22,
+	OV5640_PCLK_PERIOD, 0x16, // MIPI clock period
+	OV5640_REG_3824, 0x02, // Manual pixel-clock divider
+	OV5640_ISP_CONTROL01, 0xA3, // Enable SDE, scaling, CMX, and AWB
+	OV5640_AEC_PK_MANUAL, 0x00, // Enable automatic exposure and gain
 };
 
 
 const uint16_t ov5640_rgb565_init[]=
 {
-    0x4300, 0X6F,
-	0X501F, 0x01,
-	// 1280x800, 15fps
-	// input clock 24Mhz, PCLK 42Mhz
-	0x3035, 0x21, // PLL
-	0x3036, 0x69, // PLL
-	0x3c07, 0x07, // lightmeter 1 threshold[7:0]
-	0x3820, 0x46, // flip
-	0x3821, 0x00, // mirror
-	0x3814, 0x31, // timing X inc
-	0x3815, 0x31, // timing Y inc
-	0x3800, 0x00, // HS
-	0x3801, 0x00, // HS
-	0x3802, 0x00, // VS
-	0x3803, 0x00, // VS
-	0x3804, 0x0a, // HW (HE)
-	0x3805, 0x3f, // HW (HE)
-	0x3806, 0x06, // VH (VE)
-	0x3807, 0xa9, // VH (VE)
-	0x3808, 0x05, // DVPHO
-	0x3809, 0x00, // DVPHO
-	0x380a, 0x02, // DVPVO
-	0x380b, 0xd0, // DVPVO
-	0x380c, 0x05, // HTS
-	0x380d, 0xF8, // HTS
-	0x380e, 0x03, // VTS
-	0x380f, 0x84, // VTS
-	0x3813, 0x04, // timing V offset
-	0x3618, 0x00,
-	0x3612, 0x29,
-	0x3709, 0x52,
-	0x370c, 0x03,
-	0x3a02, 0x02, // 60Hz max exposure
-	0x3a03, 0xe0, // 60Hz max exposure 
- 
-	0x3a14, 0x02, // 50Hz max exposure
-	0x3a15, 0xe0, // 50Hz max exposure
-	0x4004, 0x02, // BLC line number
-	0x3002, 0x1c, // reset JFIFO, SFIFO, JPG
-	0x3006, 0xc3, // disable clock of JPEG2x, JPEG
-	0x4713, 0x03, // JPEG mode 3
-	0x4407, 0x04, // Quantization scale
-	0x460b, 0x37,
-	0x460c, 0x20,
-	0x4837, 0x16, // MIPI global timing
-	0x3824, 0x04, // PCLK manual divider
-	0x5001, 0xA3, // SDE on, scale on, UV average off, color matrix on, AWB on
-	0x3503, 0x00, // AEC/AGC on      
+    OV5640_FORMAT_CTRL00, 0X6F,
+	OV5640_FORMAT_MUX_CTRL, 0x01,
+	// Configure the RGB565 output timing.
+	// Input clock: 24 MHz; pixel clock: 42 MHz.
+	OV5640_SC_PLL_CONTRL1, 0x21, // PLL
+	OV5640_SC_PLL_CONTRL2, 0x69, // PLL
+	OV5640_LIGHTMETER1_TH_LOW, 0x07, // Light-meter threshold
+	OV5640_TIMING_TC_REG20, 0x46, // Vertical flip
+	OV5640_TIMING_TC_REG21, 0x00, // Disable horizontal mirror
+	OV5640_TIMING_X_INC, 0x31, // Horizontal sampling
+	OV5640_TIMING_Y_INC, 0x31, // Vertical sampling
+	OV5640_TIMING_HS_HIGH, 0x00, // Crop start X high byte
+	OV5640_TIMING_HS_LOW, 0x00, // Crop start X low byte
+	OV5640_TIMING_VS_HIGH, 0x00, // Crop start Y high byte
+	OV5640_TIMING_VS_LOW, 0x00, // Crop start Y low byte
+	OV5640_TIMING_HW_HIGH, 0x0a, // Crop end X high byte
+	OV5640_TIMING_HW_LOW, 0x3f, // Crop end X low byte
+	OV5640_TIMING_VH_HIGH, 0x06, // Crop end Y high byte
+	OV5640_TIMING_VH_LOW, 0xa9, // Crop end Y low byte
+	OV5640_TIMING_DVPHO_HIGH, 0x05, // Output width high byte
+	OV5640_TIMING_DVPHO_LOW, 0x00, // Output width low byte
+	OV5640_TIMING_DVPVO_HIGH, 0x02, // Output height high byte
+	OV5640_TIMING_DVPVO_LOW, 0xd0, // Output height low byte
+	OV5640_TIMING_HTS_HIGH, 0x05, // Horizontal total high byte
+	OV5640_TIMING_HTS_LOW, 0xF8, // Horizontal total low byte
+	OV5640_TIMING_VTS_HIGH, 0x03, // Vertical total high byte
+	OV5640_TIMING_VTS_LOW, 0x84, // Vertical total low byte
+	OV5640_TIMING_VOFFSET_LOW, 0x04, // Vertical timing offset
+	OV5640_REG_3618, 0x00,
+	OV5640_REG_3612, 0x29,
+	OV5640_REG_3709, 0x52,
+	OV5640_REG_370C, 0x03,
+	OV5640_AEC_CTRL02, 0x02, // 60 Hz exposure high byte
+	OV5640_AEC_CTRL03, 0xe0, // 60 Hz exposure low byte
+
+	OV5640_AEC_MAX_EXPO_HIGH, 0x02, // 50 Hz exposure high byte
+	OV5640_AEC_MAX_EXPO_LOW, 0xe0, // 50 Hz exposure low byte
+	OV5640_BLC_CTRL04, 0x02, // Black-level correction lines
+	OV5640_SYSREM_RESET02, 0x1c, // Reset JPEG data paths
+	OV5640_CLOCK_ENABLE02, 0xc3, // Disable JPEG clocks
+	OV5640_JPG_MODE_SELECT, 0x03, // Select JPEG mode
+	OV5640_JPEG_CTRL07, 0x04, // JPEG quantization scale
+	OV5640_REG_460B, 0x37,
+	OV5640_VFIFO_CTRL0C, 0x20,
+	OV5640_PCLK_PERIOD, 0x16, // MIPI clock period
+	OV5640_REG_3824, 0x04, // Manual pixel-clock divider
+	OV5640_ISP_CONTROL01, 0xA3, // Enable SDE, scaling, CMX, and AWB
+	OV5640_AEC_PK_MANUAL, 0x00, // Enable automatic exposure and gain
 };
 
-const uint16_t ov5640_init[]=
+const uint16_t ov5640_init_table[]=
 {
-	// 24MHz input clock, 24MHz PCLK
-	0x3008, 0x42, // software power down, bit[6]
-	0x3103, 0x03, // system clock from PLL, bit[1]
-	0x3017, 0xff, // FREX, Vsync, HREF, PCLK, D[9:6] output enable
-	0x3018, 0xff, // D[5:0], GPIO[1:0] output enable
-	0x3034, 0x1a, // MIPI 10-bit
-	0x3037, 0x13, // PLL root divider, bit[4], PLL pre-divider, bit[3:0]
-	0x3108, 0x01, // PCLK root divider, bit[5:4], SCLK2x root divider, bit[3:2]
+	// Configure the sensor for a 24 MHz input and pixel clock.
+	OV5640_SYSTEM_CTROL0, 0x42, // Enter software standby
+	OV5640_SCCB_SYSTEM_CTRL1, 0x03, // Select PLL system clock
+	OV5640_PAD_OUTPUT_ENABLE01, 0xff, // Enable sync, clock, and data outputs
+	OV5640_PAD_OUTPUT_ENABLE02, 0xff, // Enable remaining data and GPIO outputs
+	OV5640_SC_PLL_CONTRL0, 0x1a, // Select 10-bit MIPI mode
+	OV5640_SC_PLL_CONTRL3, 0x13, // Configure PLL root and pre-dividers
+	OV5640_SYSTEM_ROOT_DIVIDER, 0x01, // Configure pixel and system-clock dividers
 
-	// SCLK root divider, bit[1:0]
-	0x3630, 0x36,
-	0x3631, 0x0e,
-	0x3632, 0xe2,
-	0x3633, 0x12,
-	0x3621, 0xe0,
-	0x3704, 0xa0,
-	0x3703, 0x5a,
-	0x3715, 0x78,
-	0x3717, 0x01,
-	0x370b, 0x60,
-	0x3705, 0x1a,
-	0x3905, 0x02,
-	0x3906, 0x10,
-	0x3901, 0x0a,
-	0x3731, 0x12,
-	0x3600, 0x08, // VCM control
-	0x3601, 0x33, // VCM control
-	0x302d, 0x60, // system control
-	0x3620, 0x52,
-	0x371b, 0x20,
-	0x471c, 0x50,
-	0x3a13, 0x43, // pre-gain = 1.047x
-	0x3a18, 0x00, // gain ceiling
-	0x3a19, 0xf8, // gain ceiling = 15.5x
-	0x3635, 0x13,
-	0x3636, 0x03,
-	0x3634, 0x40,
-	0x3622, 0x01,
-	// 50/60Hz detection 50/60Hz
-	0x3c01, 0x34, // Band auto, bit[7]
-	0x3c04, 0x28, // threshold low sum
-	0x3c05, 0x98, // threshold high sum
-	0x3c06, 0x00, // light meter 1 threshold[15:8]
-	0x3c07, 0x08, // light meter 1 threshold[7:0]
-	0x3c08, 0x00, // light meter 2 threshold[15:8]
-	0x3c09, 0x1c, // light meter 2 threshold[7:0]
-	0x3c0a, 0x9c, // sample number[15:8]
-	0x3c0b, 0x40, // sample number[7:0]
-	0x3810, 0x00, // Timing Hoffset[11:8]
-	0x3811, 0x10, // Timing Hoffset[7:0]
-	0x3812, 0x00, // Timing Voffset[10:8]
-	0x3708, 0x64,
-	0x4001, 0x02, // BLC start from line 2
-	0x4005, 0x1a, // BLC always update
-	0x3000, 0x00, // enable blocks
-	0x3004, 0xff, // enable clocks
-	0x300e, 0x58, // MIPI power down, DVP enable
-	0x302e, 0x00,
-	0x4300, 0x30, // YUV 422, YUYV
-	0x501f, 0x00, // YUV 422
-	0x440e, 0x00,
-	0x5000, 0xa7, // Lenc on, raw gamma on, BPC on, WPC on, CIP on
-	// AEC target
-	0x3a0f, 0x30, // stable range in high
-	0x3a10, 0x28, // stable range in low
-	0x3a1b, 0x30, // stable range out high
-	0x3a1e, 0x26, // stable range out low
-	0x3a11, 0x60, // fast zone high
-	0x3a1f, 0x14, // fast zone low
-	// Lens correction for ?
-	0x5800, 0x23,
-	0x5801, 0x14,
-	0x5802, 0x0f,
-	0x5803, 0x0f,
-	0x5804, 0x12,
-	0x5805, 0x26,
-	0x5806, 0x0c,
-	0x5807, 0x08,
-	0x5808, 0x05,
-	0x5809, 0x05,
-	0x580a, 0x08,
+	// Configure sensor analog and system control blocks.
+	OV5640_REG_3630, 0x36,
+	OV5640_REG_3631, 0x0e,
+	OV5640_REG_3632, 0xe2,
+	OV5640_REG_3633, 0x12,
+	OV5640_REG_3621, 0xe0,
+	OV5640_REG_3704, 0xa0,
+	OV5640_REG_3703, 0x5a,
+	OV5640_REG_3715, 0x78,
+	OV5640_REG_3717, 0x01,
+	OV5640_REG_370B, 0x60,
+	OV5640_REG_3705, 0x1a,
+	OV5640_REG_3905, 0x02,
+	OV5640_REG_3906, 0x10,
+	OV5640_REG_3901, 0x0a,
+	OV5640_REG_3731, 0x12,
+	OV5640_REG_3600, 0x08, // VCM control
+	OV5640_REG_3601, 0x33, // VCM control
+	OV5640_REG_302D, 0x60, // System control
+	OV5640_REG_3620, 0x52,
+	OV5640_REG_371B, 0x20,
+	OV5640_REG_471C, 0x50,
+	OV5640_AEC_CTRL13, 0x43, // Set pre-gain to 1.047x
+	OV5640_AEC_GAIN_CEILING_HIGH, 0x00, // Gain ceiling high byte
+	OV5640_AEC_GAIN_CEILING_LOW, 0xf8, // Set gain ceiling to 15.5x
+	OV5640_REG_3635, 0x13,
+	OV5640_REG_3636, 0x03,
+	OV5640_REG_3634, 0x40,
+	OV5640_REG_3622, 0x01,
+	// Configure automatic 50/60 Hz light-flicker detection.
+	OV5640_5060HZ_CTRL01, 0x34, // Enable automatic band detection
+	OV5640_5060HZ_CTRL04, 0x28, // Set low-sum threshold
+	OV5640_5060HZ_CTRL05, 0x98, // Set high-sum threshold
+	OV5640_LIGHTMETER1_TH_HIGH, 0x00, // Light-meter 1 threshold high byte
+	OV5640_LIGHTMETER1_TH_LOW, 0x08, // Light-meter 1 threshold low byte
+	OV5640_LIGHTMETER2_TH_HIGH, 0x00, // Light-meter 2 threshold high byte
+	OV5640_LIGHTMETER2_TH_LOW, 0x1c, // Light-meter 2 threshold low byte
+	OV5640_SAMPLE_NUMBER_HIGH, 0x9c, // Sample count high byte
+	OV5640_SAMPLE_NUMBER_LOW, 0x40, // Sample count low byte
+	OV5640_TIMING_HOFFSET_HIGH, 0x00, // Horizontal offset high byte
+	OV5640_TIMING_HOFFSET_LOW, 0x10, // Horizontal offset low byte
+	OV5640_TIMING_VOFFSET_HIGH, 0x00, // Vertical offset high byte
+	OV5640_REG_3708, 0x64,
+	OV5640_BLC_CTRL01, 0x02, // Start black-level correction at line 2
+	OV5640_BLC_CTRL05, 0x1a, // Enable continuous black-level updates
+	OV5640_SYSREM_RESET00, 0x00, // Enable sensor processing blocks
+	OV5640_CLOCK_ENABLE00, 0xff, // Enable sensor clocks
+	OV5640_MIPI_CONTROL00, 0x58, // Power down MIPI and enable DVP
+	OV5640_REG_302E, 0x00,
+	OV5640_FORMAT_CTRL00, 0x30, // Set YUV422 YUYV format
+	OV5640_FORMAT_MUX_CTRL, 0x00, // Route YUV422 to the output
+	OV5640_REG_440E, 0x00,
+	OV5640_ISP_CONTROL00, 0xa7, // Enable lens, gamma, BPC, WPC, and CIP
+	// Configure automatic-exposure target ranges.
+	OV5640_AEC_CTRL0F, 0x30, // Stable range in high byte
+	OV5640_AEC_CTRL10, 0x28, // Stable range in low byte
+	OV5640_AEC_CTRL1B, 0x30, // Stable range out high byte
+	OV5640_AEC_CTRL1E, 0x26, // Stable range out low byte
+	OV5640_AEC_CTRL11, 0x60, // Fast-zone high threshold
+	OV5640_AEC_CTRL1F, 0x14, // Fast-zone low threshold
+	// Configure lens-shading correction.
+	OV5640_GMTRX00, 0x23,
+	OV5640_GMTRX01, 0x14,
+	OV5640_GMTRX02, 0x0f,
+	OV5640_GMTRX03, 0x0f,
+	OV5640_GMTRX04, 0x12,
+	OV5640_GMTRX05, 0x26,
+	OV5640_GMTRX10, 0x0c,
+	OV5640_GMTRX11, 0x08,
+	OV5640_GMTRX12, 0x05,
+	OV5640_GMTRX13, 0x05,
+	OV5640_GMTRX14, 0x08,
 
-	0x580b, 0x0d,
-	0x580c, 0x08,
-	0x580d, 0x03,
-	0x580e, 0x00,
-	0x580f, 0x00,
-	0x5810, 0x03,
-	0x5811, 0x09,
-	0x5812, 0x07,
-	0x5813, 0x03,
-	0x5814, 0x00,
-	0x5815, 0x01,
-	0x5816, 0x03,
-	0x5817, 0x08,
-	0x5818, 0x0d,
-	0x5819, 0x08,
-	0x581a, 0x05,
-	0x581b, 0x06,
-	0x581c, 0x08,
-	0x581d, 0x0e,
-	0x581e, 0x29,
-	0x581f, 0x17,
-	0x5820, 0x11,
-	0x5821, 0x11,
-	0x5822, 0x15,
-	0x5823, 0x28,
-	0x5824, 0x46,
-	0x5825, 0x26,
-	0x5826, 0x08,
-	0x5827, 0x26,
-	0x5828, 0x64,
-	0x5829, 0x26,
-	0x582a, 0x24,
-	0x582b, 0x22,
-	0x582c, 0x24,
-	0x582d, 0x24,
-	0x582e, 0x06,
-	0x582f, 0x22,
-	0x5830, 0x40,
-	0x5831, 0x42,
-	0x5832, 0x24,
-	0x5833, 0x26,
-	0x5834, 0x24,
-	0x5835, 0x22,
-	0x5836, 0x22,
-	0x5837, 0x26,
-	0x5838, 0x44,
-	0x5839, 0x24,
-	0x583a, 0x26,
-	0x583b, 0x28,
-	0x583c, 0x42,
-	0x583d, 0xce, // lenc BR offset
-	// AWB
-	0x5180, 0xff, // AWB B block
-	0x5181, 0xf2, // AWB control
-	0x5182, 0x00, // [7:4] max local counter, [3:0] max fast counter
-	0x5183, 0x14, // AWB advanced
-	0x5184, 0x25,
-	0x5185, 0x24,
-	0x5186, 0x09,
-	0x5187, 0x09,
-	0x5188, 0x09,
-	0x5189, 0x75,
-	0x518a, 0x54,
-	0x518b, 0xe0,
-	0x518c, 0xb2,
-	0x518d, 0x42,
-	0x518e, 0x3d,
-	0x518f, 0x56,
-	0x5190, 0x46,
-	0x5191, 0xf8, // AWB top limit
-	0x5192, 0x04, // AWB bottom limit
-	0x5193, 0x70, // red limit
-	0x5194, 0xf0, // green limit
-	0x5195, 0xf0, // blue limit
-	0x5196, 0x03, // AWB control
-	0x5197, 0x01, // local limit
-	0x5198, 0x04,
-	0x5199, 0x12,
-	0x519a, 0x04,
-	0x519b, 0x00,
-	0x519c, 0x06,
-	0x519d, 0x82,
-	0x519e, 0x38, // AWB control
-	// Gamma
-	0x5480, 0x01, // Gamma bias plus on, bit[0]
-	0x5481, 0x08,
-	0x5482, 0x14,
-	0x5483, 0x28,
-	0x5484, 0x51,
-	0x5485, 0x65,
-	0x5486, 0x71,
-	0x5487, 0x7d,
-	0x5488, 0x87,
-	0x5489, 0x91,
-	0x548a, 0x9a,
-	0x548b, 0xaa,
-	0x548c, 0xb8,
-	0x548d, 0xcd,
-	0x548e, 0xdd,
-	0x548f, 0xea,
-	0x5490, 0x1d,
-	// color matrix
-	0x5381, 0x1e, // CMX1 for Y
-	0x5382, 0x5b, // CMX2 for Y
-	0x5383, 0x08, // CMX3 for Y
-	0x5384, 0x0a, // CMX4 for U
-	0x5385, 0x7e, // CMX5 for U
-	0x5386, 0x88, // CMX6 for U
-	0x5387, 0x7c, // CMX7 for V
-	0x5388, 0x6c, // CMX8 for V
-	0x5389, 0x10, // CMX9 for V
-	0x538a, 0x01, // sign[9]
-	0x538b, 0x98, // sign[8:1]
-	// UV adjust UV
-	0x5580, 0x06, // saturation on, bit[1]
-	0x5583, 0x40,
-	0x5584, 0x10,
-	0x5589, 0x10,
-	0x558a, 0x00,
-	0x558b, 0xf8,
-	0x501d, 0x40, // enable manual offset of contrast
-	// CIP
-	0x5300, 0x08, // CIP sharpen MT threshold 1
-	0x5301, 0x30, // CIP sharpen MT threshold 2
-	0x5302, 0x10, // CIP sharpen MT offset 1
-	0x5303, 0x00, // CIP sharpen MT offset 2
-	0x5304, 0x08, // CIP DNS threshold 1
-	0x5305, 0x30, // CIP DNS threshold 2
-	0x5306, 0x08, // CIP DNS offset 1
-	0x5307, 0x16, // CIP DNS offset 2
-	0x5309, 0x08, // CIP sharpen TH threshold 1
-	0x530a, 0x30, // CIP sharpen TH threshold 2
-	0x530b, 0x04, // CIP sharpen TH offset 1
-	0x530c, 0x06, // CIP sharpen TH offset 2
-	0x5025, 0x00,
-	0x3008, 0x02, // wake up from standby, bit[6]
+	OV5640_GMTRX15, 0x0d,
+	OV5640_GMTRX20, 0x08,
+	OV5640_GMTRX21, 0x03,
+	OV5640_GMTRX22, 0x00,
+	OV5640_GMTRX23, 0x00,
+	OV5640_GMTRX24, 0x03,
+	OV5640_GMTRX25, 0x09,
+	OV5640_GMTRX30, 0x07,
+	OV5640_GMTRX31, 0x03,
+	OV5640_GMTRX32, 0x00,
+	OV5640_GMTRX33, 0x01,
+	OV5640_GMTRX34, 0x03,
+	OV5640_GMTRX35, 0x08,
+	OV5640_GMTRX40, 0x0d,
+	OV5640_GMTRX41, 0x08,
+	OV5640_GMTRX42, 0x05,
+	OV5640_GMTRX43, 0x06,
+	OV5640_GMTRX44, 0x08,
+	OV5640_GMTRX45, 0x0e,
+	OV5640_GMTRX50, 0x29,
+	OV5640_GMTRX51, 0x17,
+	OV5640_GMTRX52, 0x11,
+	OV5640_GMTRX53, 0x11,
+	OV5640_GMTRX54, 0x15,
+	OV5640_GMTRX55, 0x28,
+	OV5640_BRMATRX00, 0x46,
+	OV5640_BRMATRX01, 0x26,
+	OV5640_BRMATRX02, 0x08,
+	OV5640_BRMATRX03, 0x26,
+	OV5640_BRMATRX04, 0x64,
+	OV5640_BRMATRX05, 0x26,
+	OV5640_BRMATRX06, 0x24,
+	OV5640_BRMATRX07, 0x22,
+	OV5640_BRMATRX08, 0x24,
+	OV5640_BRMATRX09, 0x24,
+	OV5640_BRMATRX20, 0x06,
+	OV5640_BRMATRX21, 0x22,
+	OV5640_BRMATRX22, 0x40,
+	OV5640_BRMATRX23, 0x42,
+	OV5640_BRMATRX24, 0x24,
+	OV5640_BRMATRX30, 0x26,
+	OV5640_BRMATRX31, 0x24,
+	OV5640_BRMATRX32, 0x22,
+	OV5640_BRMATRX33, 0x22,
+	OV5640_BRMATRX34, 0x26,
+	OV5640_BRMATRX40, 0x44,
+	OV5640_BRMATRX41, 0x24,
+	OV5640_BRMATRX42, 0x26,
+	OV5640_BRMATRX43, 0x28,
+	OV5640_BRMATRX44, 0x42,
+	OV5640_LENC_BR_OFFSET, 0xce, // Lens-shading blue/red offset
+	// Configure automatic white balance.
+	OV5640_AWB_CTRL00, 0xff, // Enable AWB B-channel correction
+	OV5640_AWB_CTRL01, 0xf2, // AWB control
+	OV5640_AWB_CTRL02, 0x00, // Local and fast-counter limits
+	OV5640_AWB_CTRL03, 0x14, // Advanced AWB control
+	OV5640_AWB_CTRL04, 0x25,
+	OV5640_AWB_CTRL05, 0x24,
+	OV5640_AWB_CTRL06, 0x09,
+	OV5640_AWB_CTRL07, 0x09,
+	OV5640_AWB_CTRL08, 0x09,
+	OV5640_AWB_CTRL09, 0x75,
+	OV5640_AWB_CTRL10, 0x54,
+	OV5640_AWB_CTRL11, 0xe0,
+	OV5640_AWB_CTRL12, 0xb2,
+	OV5640_AWB_CTRL13, 0x42,
+	OV5640_AWB_CTRL14, 0x3d,
+	OV5640_AWB_CTRL15, 0x56,
+	OV5640_AWB_CTRL16, 0x46,
+	OV5640_AWB_CTRL17, 0xf8, // AWB upper limit
+	OV5640_AWB_CTRL18, 0x04, // AWB lower limit
+	OV5640_AWB_CTRL19, 0x70, // Red-channel limit
+	OV5640_AWB_CTRL20, 0xf0, // Green-channel limit
+	OV5640_AWB_CTRL21, 0xf0, // Blue-channel limit
+	OV5640_AWB_CTRL22, 0x03, // AWB control
+	OV5640_AWB_CTRL23, 0x01, // Local correction limit
+	OV5640_AWB_CTRL24, 0x04,
+	OV5640_AWB_CTRL25, 0x12,
+	OV5640_AWB_CTRL26, 0x04,
+	OV5640_AWB_CTRL27, 0x00,
+	OV5640_AWB_CTRL28, 0x06,
+	OV5640_AWB_CTRL29, 0x82,
+	OV5640_AWB_CTRL30, 0x38, // AWB control
+	// Configure the luminance gamma curve.
+	OV5640_GAMMA_CTRL00, 0x01, // Enable positive gamma bias
+	OV5640_GAMMA_YST00, 0x08,
+	OV5640_GAMMA_YST01, 0x14,
+	OV5640_GAMMA_YST02, 0x28,
+	OV5640_GAMMA_YST03, 0x51,
+	OV5640_GAMMA_YST04, 0x65,
+	OV5640_GAMMA_YST05, 0x71,
+	OV5640_GAMMA_YST06, 0x7d,
+	OV5640_GAMMA_YST07, 0x87,
+	OV5640_GAMMA_YST08, 0x91,
+	OV5640_GAMMA_YST09, 0x9a,
+	OV5640_GAMMA_YST0A, 0xaa,
+	OV5640_GAMMA_YST0B, 0xb8,
+	OV5640_GAMMA_YST0C, 0xcd,
+	OV5640_GAMMA_YST0D, 0xdd,
+	OV5640_GAMMA_YST0E, 0xea,
+	OV5640_GAMMA_YST0F, 0x1d,
+	// Configure the YUV color-conversion matrix.
+	OV5640_CMX1, 0x1e, // Luma coefficient 1
+	OV5640_CMX2, 0x5b, // Luma coefficient 2
+	OV5640_CMX3, 0x08, // Luma coefficient 3
+	OV5640_CMX4, 0x0a, // Chroma-U coefficient 1
+	OV5640_CMX5, 0x7e, // Chroma-U coefficient 2
+	OV5640_CMX6, 0x88, // Chroma-U coefficient 3
+	OV5640_CMX7, 0x7c, // Chroma-V coefficient 1
+	OV5640_CMX8, 0x6c, // Chroma-V coefficient 2
+	OV5640_CMX9, 0x10, // Chroma-V coefficient 3
+	OV5640_CMXSIGN_HIGH, 0x01, // Matrix sign bits high
+	OV5640_CMXSIGN_LOW, 0x98, // Matrix sign bits low
+	// Configure saturation and UV offsets.
+	OV5640_SDE_CTRL0, 0x06, // Enable saturation control
+	OV5640_SDE_CTRL3, 0x40,
+	OV5640_SDE_CTRL4, 0x10,
+	OV5640_SDE_CTRL9, 0x10,
+	OV5640_SDE_CTRL10, 0x00,
+	OV5640_SDE_CTRL11, 0xf8,
+	OV5640_ISP_MISC0, 0x40, // Enable manual contrast offset
+	// Configure color-interpolation sharpening and denoising.
+	OV5640_CIP_SHARPENMT_TH1, 0x08, // Medium-tone sharpen threshold 1
+	OV5640_CIP_SHARPENMT_TH2, 0x30, // Medium-tone sharpen threshold 2
+	OV5640_CIP_SHARPENMT_OFFSET1, 0x10, // Medium-tone sharpen offset 1
+	OV5640_CIP_SHARPENMT_OFFSET2, 0x00, // Medium-tone sharpen offset 2
+	OV5640_CIP_DNS_TH1, 0x08, // Denoise threshold 1
+	OV5640_CIP_DNS_TH2, 0x30, // Denoise threshold 2
+	OV5640_CIP_DNS_OFFSET1, 0x08, // Denoise offset 1
+	OV5640_CIP_DNS_OFFSET2, 0x16, // Denoise offset 2
+	OV5640_CIP_SHARPENTH_TH1, 0x08, // High-tone sharpen threshold 1
+	OV5640_CIP_SHARPENTH_TH2, 0x30, // High-tone sharpen threshold 2
+	OV5640_CIP_SHARPENTH_OFFSET1, 0x04, // High-tone sharpen offset 1
+	OV5640_CIP_SHARPENTH_OFFSET2, 0x06, // High-tone sharpen offset 2
+	OV5640_REG_5025, 0x00,
+	OV5640_SYSTEM_CTROL0, 0x02, // Exit software standby
 
-	0x4740, 0X21, //VSYNC active HIGH
+	OV5640_POLARITY_CTRL, 0X21, // Set VSYNC active high
 
 };
 
 #endif
-
-
-
-
-
 
 
 

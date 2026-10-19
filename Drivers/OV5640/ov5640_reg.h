@@ -22,6 +22,43 @@
 #define OV5640_REG_H
 
 
+/* Registers not assigned a semantic name above. */
+#define OV5640_REG_3618                            0x3618U
+#define OV5640_REG_3612                            0x3612U
+#define OV5640_REG_3709                            0x3709U
+#define OV5640_REG_370C                            0x370CU
+#define OV5640_REG_460B                            0x460BU
+#define OV5640_REG_3824                            0x3824U
+#define OV5640_REG_3630                            0x3630U
+#define OV5640_REG_3631                            0x3631U
+#define OV5640_REG_3632                            0x3632U
+#define OV5640_REG_3633                            0x3633U
+#define OV5640_REG_3621                            0x3621U
+#define OV5640_REG_3704                            0x3704U
+#define OV5640_REG_3703                            0x3703U
+#define OV5640_REG_3715                            0x3715U
+#define OV5640_REG_3717                            0x3717U
+#define OV5640_REG_370B                            0x370BU
+#define OV5640_REG_3705                            0x3705U
+#define OV5640_REG_3905                            0x3905U
+#define OV5640_REG_3906                            0x3906U
+#define OV5640_REG_3901                            0x3901U
+#define OV5640_REG_3731                            0x3731U
+#define OV5640_REG_3600                            0x3600U
+#define OV5640_REG_3601                            0x3601U
+#define OV5640_REG_302D                            0x302DU
+#define OV5640_REG_3620                            0x3620U
+#define OV5640_REG_371B                            0x371BU
+#define OV5640_REG_471C                            0x471CU
+#define OV5640_REG_3635                            0x3635U
+#define OV5640_REG_3636                            0x3636U
+#define OV5640_REG_3634                            0x3634U
+#define OV5640_REG_3622                            0x3622U
+#define OV5640_REG_3708                            0x3708U
+#define OV5640_REG_302E                            0x302EU
+#define OV5640_REG_440E                            0x440EU
+#define OV5640_REG_5025                            0x5025U
+
 #ifdef __cplusplus
 extern "C" {
 #endif
