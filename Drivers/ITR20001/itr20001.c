@@ -17,7 +17,7 @@
 #include "itr20001.h"
 
 extern ADC_HandleTypeDef hadc1;
-uint16_t adc_value[SENSOR_NUM] __attribute__((aligned(32), section(".dma_buffer")));
+uint16_t adc_value[SENSOR_NUM] __attribute__((aligned(32), section(".ahb_sram")));
 
 static volatile bool adc_complete = false;
 

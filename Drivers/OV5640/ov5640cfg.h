@@ -14,7 +14,27 @@ const uint8_t ov5640_exposure[7][6] =
 	{ 0x60,0x58,0xa0,0x60,0x58,0x20 }	//+3    
 };
 
-const uint16_t ov5640_jpeg_init[]=
+const uint8_t ov5640_light_mode[5][7] =
+{
+	{ 0x04,0X00,0X04,0X00,0X04,0X00,0X00 },	//Auto 
+	{ 0x06,0X1C,0X04,0X00,0X04,0XF3,0X01 },	//Sunny
+	{ 0x05,0X48,0X04,0X00,0X07,0XCF,0X01 },	//Office
+	{ 0x06,0X48,0X04,0X00,0X04,0XD3,0X01 },	//Cloudy
+	{ 0x04,0X10,0X04,0X00,0X08,0X40,0X01 }	//Home
+};
+
+const uint8_t ov5640_saturation[7][6] =
+{
+	{ 0X0C,0x30,0X3D,0X3E,0X3D,0X01 },	//-3 
+	{ 0X10,0x3D,0X4D,0X4E,0X4D,0X01 },	//-2	
+	{ 0X15,0x52,0X66,0X68,0X66,0X02 },	//-1	
+	{ 0X1A,0x66,0X80,0X82,0X80,0X02 },	//+0	
+	{ 0X1F,0x7A,0X9A,0X9C,0X9A,0X02 },	//+1	
+	{ 0X24,0x8F,0XB3,0XB6,0XB3,0X03 },	//+2
+	{ 0X2B,0xAB,0XD6,0XDA,0XD6,0X04 }	//+3
+};
+
+const uint16_t ov5640_jpeg_init[] =
 {
 	0x4300, 0x30, // YUV 422, YUYV
 	0x501f, 0x00, // YUV 422

@@ -227,17 +227,17 @@ SECTIONS
   } >DTCMRAM
   PROVIDE( __non_tls_bss_start = ADDR(.bss) );
 
-  .dma_buffer (NOLOAD) : ALIGN(32)
+  .ahb_sram (NOLOAD) : ALIGN(32)
   {
-    *(.dma_buffer)
-    *(.dma_buffer*)
+    *(.ahb_sram)
+    *(.ahb_sram*)
     . = ALIGN(32);
   } >RAM_D2
 
-   .image_buffer (NOLOAD) : ALIGN(32)
+   .axi_sram (NOLOAD) : ALIGN(32)
   {
-    *(.image_buffer)
-    *(.image_buffer*)
+    *(.axi_sram)
+    *(.axi_sram*)
     . = ALIGN(32);
   } >RAM
 

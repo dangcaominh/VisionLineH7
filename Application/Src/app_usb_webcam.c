@@ -21,9 +21,6 @@
 
 struct video_handle_t video;
 
-/* Default assignment to avoid NULL pointer */
-extern struct video_handle_t* video_ptr = &video;
-
 
 
 uint8_t jpeg[JPEG_SIZE] __attribute__((aligned(32), section(".image_buffer")));

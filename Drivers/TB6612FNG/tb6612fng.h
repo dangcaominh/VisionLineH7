@@ -35,5 +35,5 @@ int tb6612fng_set_direction(motor_id_t id, direction_t direction);
 int tb6612fng_set_speed(motor_id_t id, uint32_t duty);
 void tb6612fng_enable();
 void tb6612fng_standby();
-void tb6612_stop();
+void tb6612fng_stop();
 #endif

@@ -3,7 +3,7 @@
 
 #include "main.h"
 
- 
+
 #define  OV5640_PWDN_Pin_RESET   HAL_GPIO_WritePin(OV5640_PWDN_GPIO_Port, OV5640_PWDN_Pin, GPIO_PIN_RESET)
 
 

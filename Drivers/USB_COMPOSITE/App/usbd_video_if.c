@@ -37,7 +37,10 @@
 
 /* Private typedef -----------------------------------------------------------*/
 
-struct video_handle_t *video_ptr;
+extern struct video_handle_t video;
+
+/* Default assignment to avoid NULL pointer */
+struct video_handle_t* video_ptr = &video;
 
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/

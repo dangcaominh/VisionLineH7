@@ -31,8 +31,8 @@ static int test_motor_init()
 
 static void test_motor_run()
 {
-    tb6612_set_direction(MOTOR_ALL, MOTOR_FORWARD);
-    tb6612_set_speed(MOTOR_ALL, 1000);
+    tb6612fng_set_direction(MOTOR_ALL, MOTOR_FORWARD);
+    tb6612fng_set_speed(MOTOR_ALL, 1000);
     tb6612fng_enable();
     HAL_Delay(1000);
 
@@ -56,5 +56,5 @@ static void test_motor_run()
 
 static void test_motor_stop()
 {
-    tb6612_stop();
+    tb6612fng_stop();
 }

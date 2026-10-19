@@ -20,7 +20,6 @@
 
 extern I2C_HandleTypeDef hi2c1;
 
-
 /**
   * @brief  Ghi 1 byte vào thanh ghi OV5640 thông qua Hardware I2C1
   * @param  reg: Địa chỉ thanh ghi (16-bit)
@@ -76,9 +75,9 @@ void OV5640_JPEG_Mode(void)
 {
 	uint16_t i = 0;
 
-	for (i = 0; i < sizeof(OV5640_jpeg_init) / (2 * sizeof(OV5640_jpeg_init[0])); i++)
+	for (i = 0; i < sizeof(ov5640_jpeg_init) / (2 * sizeof(ov5640_jpeg_init[0])); i++)
 	{
-		OV5640_WR_Reg(OV5640_jpeg_init[i * 2], OV5640_jpeg_init[i * 2 + 1]);
+		OV5640_WR_Reg(ov5640_jpeg_init[i * 2], ov5640_jpeg_init[i * 2 + 1]);
 	}
 }
 
@@ -105,36 +104,16 @@ void OV5640_Exposure(uint8_t exposure)
 	OV5640_WR_Reg(0x3212, 0xa3); //launch group 3
 }
 
-static const uint8_t OV5640_LIGHTMODE_TBL[5][7] =
-{
-	{ 0x04,0X00,0X04,0X00,0X04,0X00,0X00 },	//Auto 
-	{ 0x06,0X1C,0X04,0X00,0X04,0XF3,0X01 },	//Sunny
-	{ 0x05,0X48,0X04,0X00,0X07,0XCF,0X01 },	//Office
-	{ 0x06,0X48,0X04,0X00,0X04,0XD3,0X01 },	//Cloudy
-	{ 0x04,0X10,0X04,0X00,0X08,0X40,0X01 }	//Home
-};
-
 void OV5640_Light_Mode(uint8_t mode)
 {
 	OV5640_WR_Reg(0x3212, 0x03);	//start group 3
 	for (int i = 0; i < 7; i++)
 	{
-		OV5640_WR_Reg(0x3400 + i, OV5640_LIGHTMODE_TBL[mode][i]);
+		OV5640_WR_Reg(0x3400 + i, ov5640_light_mode[mode][i]);
 	}
 	OV5640_WR_Reg(0x3212, 0x13); //end group 3
 	OV5640_WR_Reg(0x3212, 0xa3); //launch group 3	
 }
-
-static const uint8_t OV5640_SATURATION_TBL[7][6] =
-{
-	{ 0X0C,0x30,0X3D,0X3E,0X3D,0X01 },	//-3 
-	{ 0X10,0x3D,0X4D,0X4E,0X4D,0X01 },	//-2	
-	{ 0X15,0x52,0X66,0X68,0X66,0X02 },	//-1	
-	{ 0X1A,0x66,0X80,0X82,0X80,0X02 },	//+0	
-	{ 0X1F,0x7A,0X9A,0X9C,0X9A,0X02 },	//+1	
-	{ 0X24,0x8F,0XB3,0XB6,0XB3,0X03 },	//+2
-	{ 0X2B,0xAB,0XD6,0XDA,0XD6,0X04 }	//+3
-};
 
 void OV5640_Color_Saturation(uint8_t sat)
 {
@@ -145,7 +124,7 @@ void OV5640_Color_Saturation(uint8_t sat)
 	OV5640_WR_Reg(0x5383, 0x06);
 	for (i = 0; i < 6; i++)
 	{
-		OV5640_WR_Reg(0x5384 + i, OV5640_SATURATION_TBL[sat][i]);
+		OV5640_WR_Reg(0x5384 + i, ov5640_saturation[sat][i]);
 	}
 	OV5640_WR_Reg(0x538b, 0x98);
 	OV5640_WR_Reg(0x538a, 0x01);

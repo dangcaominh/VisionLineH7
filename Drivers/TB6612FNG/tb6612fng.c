@@ -22,7 +22,7 @@ extern TIM_HandleTypeDef htim1;
 /**
  * @brief Initialize the TB6612FNG control pins and start PWM outputs.
  *
- * Call this function only one time at initialization phase of code and call tb6612_enable.
+ * Call this function only one time at initialization phase of code and call tb6612fng_enable.
  */
 void tb6612fng_init()
 {
@@ -115,7 +115,7 @@ int tb6612fng_set_speed(motor_id_t id, uint32_t duty)
 /**
  * @brief Enable the motor driver by releasing the standby input.
  *
- * Call this after tb6612fng_init or tb6612_standby.
+ * Call this after tb6612fng_init or tb6612fng_standby.
  */
 void tb6612fng_enable()
 {
