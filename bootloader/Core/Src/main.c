@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
+#include "usbd_core.h"
+#include "usbd_conf.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -32,10 +34,10 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define APP_ADDRESS       0x08010000U
+#define APP_ADDRESS       0x08020000U
 #define APP_FLASH_END      0x08200000U
 #define SRAM_START_ADDRESS 0x20000000U
-#define SRAM_END_ADDRESS   0x2001FFFFU
+#define SRAM_END_ADDRESS   0x20020000U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -55,6 +57,8 @@ static void MPU_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 static void Bootloader_JumpToApplication(void);
+extern USBD_HandleTypeDef hUsbDeviceHS;
+extern PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
 static void Bootloader_JumpToApplication(void)
 {
@@ -73,6 +77,10 @@ static void Bootloader_JumpToApplication(void)
   }
 
   __disable_irq();
+  HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
+  HAL_NVIC_ClearPendingIRQ(OTG_HS_IRQn);
+  __HAL_RCC_USB_OTG_HS_FORCE_RESET();
+  __HAL_RCC_USB_OTG_HS_RELEASE_RESET();
   SysTick->CTRL = 0U;
   SysTick->LOAD = 0U;
   SysTick->VAL = 0U;
@@ -131,7 +139,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USB_DEVICE_Init();
+ 
   /* USER CODE BEGIN 2 */
   /**
 	 * @brief  Lựa chọn chế độ hoạt động ngay khi vừa boot
@@ -154,6 +162,7 @@ int main(void)
   {
     Bootloader_JumpToApplication();
   }
+   MX_USB_DEVICE_Init();
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);

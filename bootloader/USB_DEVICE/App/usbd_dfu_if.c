@@ -23,6 +23,7 @@
 /* USER CODE BEGIN INCLUDE */
 #include "main.h"
 #include "stm32h7xx_hal_flash_ex.h"
+#include <string.h>
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,27 +63,11 @@
   * @{
   */
 
-#define FLASH_DESC_STR      "@DFU STM32/0x08010000/01*064Kg,07*128Kg,04*016Kg,01*064Kg,07*128Kg"
-
+#define FLASH_DESC_STR      "@DFU STM32/0x08020000/07*128Kg,08*128Kg"
 /* USER CODE BEGIN PRIVATE_DEFINES */
-#define APP_FLASH_START     0x08000000UL
-#define APP_FLASH_END       0x08100000UL
-
-static const uint32_t app_flash_sector_starts[] =
-{
-  0x08000000UL,
-  0x08004000UL,
-  0x08008000UL,
-  0x0800C000UL,
-  0x08010000UL,
-  0x08020000UL,
-  0x08040000UL,
-  0x08060000UL,
-  0x08080000UL,
-  0x080A0000UL,
-  0x080C0000UL,
-  0x080E0000UL
-};
+#define APP_FLASH_START     0x08020000UL
+#define APP_FLASH_END       0x08200000UL
+#define FLASH_BANK2_START   0x08100000UL
 
 static uint8_t IsAppFlashRange(uint32_t address, uint32_t length)
 {
@@ -210,22 +195,26 @@ uint16_t MEM_If_Erase_HS(uint32_t Add)
   FLASH_EraseInitTypeDef erase_init = {0};
   uint32_t sector_error = 0U;
   uint32_t sector;
+  uint32_t bank;
 
   if (IsAppFlashRange(Add, 1U) == 0U)
   {
     return USBD_FAIL;
   }
 
-  for (sector = 0U; sector < (sizeof(app_flash_sector_starts) / sizeof(app_flash_sector_starts[0])); sector++)
+  erase_init.TypeErase = FLASH_TYPEERASE_SECTORS;
+  if (Add < FLASH_BANK2_START)
   {
-    if ((sector == 11U) || (Add < app_flash_sector_starts[sector + 1U]))
-    {
-      break;
-    }
+    bank = FLASH_BANK_1;
+    sector = (Add - FLASH_BANK1_BASE) / 0x00020000UL;
+  }
+  else
+  {
+    bank = FLASH_BANK_2;
+    sector = (Add - FLASH_BANK2_START) / 0x00020000UL;
   }
 
-  erase_init.TypeErase = FLASH_TYPEERASE_SECTORS;
-  erase_init.Banks = FLASH_BANK_1;
+  erase_init.Banks = bank;
   erase_init.Sector = sector;
   erase_init.NbSectors = 1U;
   erase_init.VoltageRange = FLASH_VOLTAGE_RANGE_3;
@@ -248,24 +237,23 @@ uint16_t MEM_If_Write_HS(uint8_t *src, uint8_t *dest, uint32_t Len)
   uint32_t offset;
 
   if ((src == NULL) || (dest == NULL) || (IsAppFlashRange(address, Len) == 0U) ||
-      ((address & 0x3U) != 0U))
+      ((address & 0x1FU) != 0U))
   {
     return USBD_FAIL;
   }
 
-  for (offset = 0U; offset < Len; offset += 4U)
+  for (offset = 0U; offset < Len; offset += 32U)
   {
+    uint32_t flash_word[8];
     uint32_t remaining = Len - offset;
-    uint64_t word = 0xFFFFFFFFULL;
-    uint32_t byte;
+    uint32_t copy_length = (remaining < sizeof(flash_word)) ? remaining : sizeof(flash_word);
 
-    for (byte = 0U; (byte < 4U) && (byte < remaining); byte++)
-    {
-      word &= ~((uint64_t)0xFFU << (byte * 8U));
-      word |= (uint64_t)src[offset + byte] << (byte * 8U);
-    }
+    memset(flash_word, 0xFF, sizeof(flash_word));
+    memcpy(flash_word, &src[offset], copy_length);
 
-    if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, address + offset, word) != HAL_OK)
+    if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD,
+                          address + offset,
+                          (uint32_t)flash_word) != HAL_OK)
     {
       return USBD_FAIL;
     }
@@ -342,4 +330,3 @@ uint16_t MEM_If_GetStatus_HS(uint32_t Add, uint8_t Cmd, uint8_t *buffer)
 /**
   * @}
   */
-
