@@ -60,16 +60,28 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${TB6612FNG_SOURCES}
     ${Camera_SOURCES}
     ${APPLICATION_SOURCES}
+    Core/Src/usb_descriptors.c
+    tinyusb/src/class/cdc/cdc_device.c
+    tinyusb/src/tusb.c
+    tinyusb/src/device/usbd.c
+    tinyusb/src/common/tusb_fifo.c
+
+    tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
+    tinyusb/src/portable/synopsys/dwc2/dwc2_common.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    Core/Src
     Drivers/OV5640
     Drivers/ITR20001
     Drivers/Encoder
     Drivers/TB6612FNG
     Drivers/Camera
+    tinyusb/src
+    tinyusb/src/common
+    tinyusb/src/portable/synopsys/dwc2
     Application/Inc
 )
 
