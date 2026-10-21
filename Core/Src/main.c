@@ -25,13 +25,13 @@
 #include "jpeg.h"
 #include "mdma.h"
 #include "tim.h"
-#include "usb_otg.h"
+#include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ov5640.h"
-#include "usbd_cdc_acm_if.h"
+#include "usbd_cdc_if.h"
 #include "sys_mode.h"
 /* USER CODE END Includes */
 
@@ -71,7 +71,7 @@ static void MPU_Config(void);
 int _write(int file, char *data, int len)
 {
 	UNUSED(file);
-	CDC_Transmit(0, (uint8_t *)data, len);
+	CDC_Transmit_HS((uint8_t *)data, len);
 	return len;
 }
 /* USER CODE END 0 */
@@ -124,8 +124,8 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-  MX_USB_OTG_HS_PCD_Init();
   MX_JPEG_Init();
+  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 	MX_USB_DEVICE_Init();
 	sys_mode_t current_mode = sys_mode_init();
