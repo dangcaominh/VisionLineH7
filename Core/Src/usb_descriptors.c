@@ -25,6 +25,7 @@
 
 #include "main.h"
 #include "tusb.h"
+#include "usb_descriptor.h"
 
 // Unique PID per example: guarantees re-enumeration on re-flash and a fresh host driver match.
 #define USB_PID           0x4006
@@ -34,18 +35,34 @@
 
 size_t board_usb_get_serial(uint8_t id[], size_t max_len)
 {
-    (void) max_len;
+    static char const hex[] = "0123456789ABCDEF";
+    volatile uint32_t const *stm32_uuid = (volatile uint32_t const *) UID_BASE;
+    size_t const max_chars = (max_len < 24U) ? max_len : 24U;
 
-    volatile uint32_t *stm32_uuid = (volatile uint32_t *) UID_BASE;
-    uint32_t *id32 = (uint32_t *) (uintptr_t) id;
-    uint8_t const len = 12;
+    for (size_t i = 0; i < max_chars; i++)
+    {
+        uint8_t const byte = ((uint8_t const *) stm32_uuid)[i / 2U];
+        id[i] = (uint8_t) hex[(i & 1U) ? (byte & 0x0FU) : (byte >> 4U)];
+    }
 
-    id32[0] = stm32_uuid[0];
-    id32[1] = stm32_uuid[1];
-    id32[2] = stm32_uuid[2];
-
-    return len;
+    return max_chars;
 }
+
+//--------------------------------------------------------------------+
+// String Descriptors
+//--------------------------------------------------------------------+
+
+// String Descriptor Index
+enum {
+  STRID_LANGID = 0,
+  STRID_MANUFACTURER,
+  STRID_PRODUCT,
+  STRID_SERIAL,
+  STRID_CDC,
+  STRID_UVC_CONTROL,
+  STRID_UVC_STREAMING,
+};
+
 
 //--------------------------------------------------------------------+
 // Device Descriptors
@@ -89,10 +106,12 @@ enum {
   ITF_NUM_CDC_1,
   ITF_NUM_CDC_1_DATA,
 #endif
+  ITF_NUM_VIDEO_CONTROL,
+  ITF_NUM_VIDEO_STREAMING,
   ITF_NUM_TOTAL
 };
 
-#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + CFG_TUD_CDC * TUD_CDC_DESC_LEN)
+#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + CFG_TUD_CDC * TUD_CDC_DESC_LEN + TUD_VIDEO_CAPTURE_DESC_MJPEG_LEN)
 
 #if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
   // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
@@ -142,23 +161,28 @@ enum {
   #define EPNUM_CDC_0_NOTIF   0x81
   #define EPNUM_CDC_0_OUT     0x02
   #define EPNUM_CDC_0_IN      0x82
-
+#if CFG_TUD_CDC > 1
   #define EPNUM_CDC_1_NOTIF   0x83
   #define EPNUM_CDC_1_OUT     0x04
   #define EPNUM_CDC_1_IN      0x84
 #endif
+  #define EPNUM_VIDEO_IN    0x83
+#endif
+
+#define USE_ISO_STREAMING (!CFG_TUD_VIDEO_STREAMING_BULK)
 
 static uint8_t const desc_fs_configuration[] = {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
   // 1st CDC: Interface number, string index, EP notification address and size, EP data address (out, in) and size.
-  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 16, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 64),
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, STRID_CDC, EPNUM_CDC_0_NOTIF, 16, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 64),
 
 #if CFG_TUD_CDC > 1
   // 2nd CDC: Interface number, string index, EP notification address and size, EP data address (out, in) and size.
-  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4, EPNUM_CDC_1_NOTIF, 16, EPNUM_CDC_1_OUT, EPNUM_CDC_1_IN, 64),
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, STRID_CDC, EPNUM_CDC_1_NOTIF, 16, EPNUM_CDC_1_OUT, EPNUM_CDC_1_IN, 64),
 #endif
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_MJPEG(STRID_UVC_CONTROL, EPNUM_VIDEO_IN, FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE, 512),
 };
 
 #if TUD_OPT_HIGH_SPEED
@@ -168,12 +192,13 @@ static uint8_t const desc_hs_configuration[] = {
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
   // 1st CDC: Interface number, string index, EP notification address and size, EP data address (out, in) and size.
-  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, 4, EPNUM_CDC_0_NOTIF, 16, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 512),
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_0, STRID_CDC, EPNUM_CDC_0_NOTIF, 16, EPNUM_CDC_0_OUT, EPNUM_CDC_0_IN, 512),
 
 #if CFG_TUD_CDC > 1
   // 2nd CDC: Interface number, string index, EP notification address and size, EP data address (out, in) and size.
-  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, 4, EPNUM_CDC_1_NOTIF, 16, EPNUM_CDC_1_OUT, EPNUM_CDC_1_IN, 512),
+  TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, STRID_CDC, EPNUM_CDC_1_NOTIF, 16, EPNUM_CDC_1_OUT, EPNUM_CDC_1_IN, 512),
 #endif
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_MJPEG(STRID_UVC_CONTROL, EPNUM_VIDEO_IN, FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE, 512),
 };
 
 // device qualifier is mostly similar to device descriptor since we don't change configuration based on speed
@@ -225,17 +250,6 @@ uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
 #endif
 }
 
-//--------------------------------------------------------------------+
-// String Descriptors
-//--------------------------------------------------------------------+
-
-// String Descriptor Index
-enum {
-  STRID_LANGID = 0,
-  STRID_MANUFACTURER,
-  STRID_PRODUCT,
-  STRID_SERIAL,
-};
 
 // array of pointer to string descriptors
 static char const *string_desc_arr[] = {
@@ -244,6 +258,8 @@ static char const *string_desc_arr[] = {
   "TinyUSB Device",              // 2: Product
   NULL,                          // 3: Serials will use unique ID if possible
   "TinyUSB CDC",                 // 4: CDC Interface
+  "UVC Control",                 // 5: UVC Interface
+  "UVC Streaming",               // 6: UVC Interface
 };
 
 static uint16_t _desc_str[32 + 1];
@@ -261,8 +277,15 @@ uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
       break;
 
     case STRID_SERIAL:
-      chr_count = board_usb_get_serial(_desc_str + 1, 32);
+    {
+      uint8_t serial[32];
+      chr_count = board_usb_get_serial(serial, sizeof(serial));
+      for (size_t i = 0; i < chr_count; i++)
+      {
+        _desc_str[1 + i] = serial[i];
+      }
       break;
+    }
 
     default:
       // Note: the 0xEE index string is a Microsoft OS 1.0 Descriptors.

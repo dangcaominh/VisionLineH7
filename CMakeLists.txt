@@ -62,6 +62,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${APPLICATION_SOURCES}
     Core/Src/usb_descriptors.c
     tinyusb/src/class/cdc/cdc_device.c
+    tinyusb/src/class/video/video_device.c
     tinyusb/src/tusb.c
     tinyusb/src/device/usbd.c
     tinyusb/src/common/tusb_fifo.c

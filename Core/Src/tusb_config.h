@@ -78,12 +78,12 @@
  * - CFG_TUSB_MEM SECTION : __attribute__ (( section(".usb_ram") ))
  * - CFG_TUSB_MEM_ALIGN   : __attribute__ ((aligned(4)))
  */
-#ifndef CFG_TUSB_MEM_SECTION
-#define CFG_TUSB_MEM_SECTION
+#ifndef CFG_TUSB_MEM_SECTION    
+#define CFG_TUSB_MEM_SECTION    __attribute__ (( section(".ahb_sram") ))
 #endif
 
 #ifndef CFG_TUSB_MEM_ALIGN
-#define CFG_TUSB_MEM_ALIGN          __attribute__ ((aligned(4)))
+#define CFG_TUSB_MEM_ALIGN          __attribute__ ((aligned(32)))
 #endif
 
 //--------------------------------------------------------------------
@@ -100,6 +100,13 @@
 #define CFG_TUD_HID               0
 #define CFG_TUD_MIDI              0
 #define CFG_TUD_VENDOR            0
+#define CFG_TUD_VIDEO             1
+
+#define CFG_TUD_VIDEO_STREAMING  1
+
+#define CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE  512
+#define CFG_TUD_VIDEO_STREAMING_BULK 0
+#define USE_MJPEG                   1
 
 #define CFG_TUD_CDC_NOTIFY        1 // Enable use of notification endpoint
 

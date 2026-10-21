@@ -24,6 +24,9 @@
 #include "ov5640.h"
 #include "tusb.h"
 #include "sys_mode.h"
+#include "images.h"
+#include "usb_descriptor.h"
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,19 +86,90 @@ static void MX_USB_OTG_HS_PCD_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+uint32_t tusb_time_millis_api(void)
+{
+  return HAL_GetTick();
+}
+
 /**
  * @brief  Overload hàm printf bằng cổng CDC của USB FS.
  */
 int _write(int file, char *data, int len)
 {
   UNUSED(file);
-  for (int i = 0; i < len; i++)
-  {
-    tud_cdc_n_write_char(0, data[i]);
-  }
-    //CDC_Transmit_HS((uint8_t *)data, len);
-	return len;
+
+  uint32_t written = tud_cdc_n_write(0, data, (uint32_t) len);
+  tud_cdc_n_write_flush(0);
+
+  return (int) written;
 }
+
+typedef struct {
+  uint32_t       size;
+  uint8_t const *buffer;
+} video_frame_t;
+
+static video_frame_t const frames[] = {
+  {color_bar_0_jpg_len, color_bar_0_jpg},
+  {color_bar_1_jpg_len, color_bar_1_jpg},
+  {color_bar_2_jpg_len, color_bar_2_jpg},
+  {color_bar_3_jpg_len, color_bar_3_jpg},
+  {color_bar_4_jpg_len, color_bar_4_jpg},
+  {color_bar_5_jpg_len, color_bar_5_jpg},
+  {color_bar_6_jpg_len, color_bar_6_jpg},
+  {color_bar_7_jpg_len, color_bar_7_jpg},
+};
+
+static unsigned frame_num = 0;
+static unsigned tx_busy = 0;
+static unsigned interval_ms = 1000 / FRAME_RATE;
+static uint32_t video_frames_completed = 0;
+
+static void video_send_frame(void) {
+  static uint32_t start_ms = 0;
+
+  if (!tud_video_n_streaming(0, 0)) {
+    frame_num = 0;
+    tx_busy = 0;
+    return;
+  }
+
+  uint32_t const now = tusb_time_millis_api();
+  if (tx_busy || (now - start_ms < interval_ms)) {
+    return;
+  }
+
+  video_frame_t const *frame = &frames[frame_num % 8];
+
+  if (tud_video_n_frame_xfer(0, 0, (void *) frame->buffer, frame->size)) {
+    tx_busy = 1;
+    start_ms = now;
+  }
+}
+
+void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx)
+{
+  (void) ctl_idx;
+  (void) stm_idx;
+  tx_busy = 0;
+  frame_num++;
+  video_frames_completed++;
+}
+
+int tud_video_commit_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx,
+                        video_probe_and_commit_control_t const *parameters)
+{
+  (void) ctl_idx;
+  (void) stm_idx;
+
+  interval_ms = parameters->dwFrameInterval / 10000U;
+  if (interval_ms == 0U) {
+    interval_ms = 1U;
+  }
+
+  return VIDEO_ERROR_NONE;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -171,8 +245,25 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		printf("Run mode %d complete\r\n", (int)current_mode);
-    tud_task();
+	  static uint32_t benchmark_start_ms = 0;
+	  static uint32_t benchmark_start_frames = 0;
+
+	  tud_task();
+
+	  uint32_t const now_ms = HAL_GetTick();
+	  if ((now_ms - benchmark_start_ms) >= 1000U)
+	  {
+	    uint32_t const elapsed_ms = now_ms - benchmark_start_ms;
+	    uint32_t const completed = video_frames_completed - benchmark_start_frames;
+	    printf("UVC FPS: %lu (frames: %lu, elapsed: %lu ms)\r\n",
+	           (unsigned long) ((completed * 1000U) / elapsed_ms),
+	           (unsigned long) completed,
+	           (unsigned long) elapsed_ms);
+	    benchmark_start_ms = now_ms;
+	    benchmark_start_frames = video_frames_completed;
+	  }
+
+	  video_send_frame();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -613,7 +704,7 @@ static void MX_USB_OTG_HS_PCD_Init(void)
   hpcd_USB_OTG_HS.Instance = USB_OTG_HS;
   hpcd_USB_OTG_HS.Init.dev_endpoints = 9;
   hpcd_USB_OTG_HS.Init.speed = PCD_SPEED_HIGH;
-  hpcd_USB_OTG_HS.Init.dma_enable = DISABLE;
+  hpcd_USB_OTG_HS.Init.dma_enable = ENABLE;
   hpcd_USB_OTG_HS.Init.phy_itface = USB_OTG_ULPI_PHY;
   hpcd_USB_OTG_HS.Init.Sof_enable = ENABLE;
   hpcd_USB_OTG_HS.Init.low_power_enable = DISABLE;
