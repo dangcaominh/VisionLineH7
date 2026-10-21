@@ -3,7 +3,7 @@ setlocal EnableExtensions
 
 cd /d "%~dp0"
 for %%I in ("%~dp0.") do set "PROJECT=%%~nxI"
-set "FLASH_ADDRESS=0x08010000"
+set "FLASH_ADDRESS=0x08020000"
 set "STM32_DEVICE=STM32H734VI"
 set "STM32_PORT=SWD"
 set "STM32_PROGRAMMER_CLI=STM32_Programmer_CLI.exe"
@@ -11,7 +11,7 @@ set "DFU_UTIL=dfu-util.exe"
 set "ARM_OBJCOPY=arm-none-eabi-objcopy.exe"
 set "DFU_DEVICE=0483:52A4"
 set "DFU_ALT=0"
-set "DFU_ADDRESS=0x08010000"
+set "DFU_ADDRESS=0x08020000"
 
 if "%~1"=="" goto :help
 if /I "%~1"=="help" goto :help
