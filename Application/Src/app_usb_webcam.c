@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "app_usb_webcam.h"
-#include "ov5640.h"
-
-
+#include "camera.h"
+#include "tusb.h"
+#include "usb_descriptor.h"
 
 const struct sys_mode_api usb_webcam_api =
 {
@@ -31,7 +31,7 @@ const struct sys_mode_api usb_webcam_api =
 
 static int usb_webcam_init()
 {
-    ov5640_init();
+    camera_init();
     return 0;
 }
 
@@ -42,4 +42,94 @@ static void usb_webcam_run()
 
 static void usb_webcam_stop()
 {
+}
+
+
+
+static struct video_handle_t video_handle;
+static uint32_t interval_ms = 1000 / FRAME_RATE;
+static uint32_t last_frame_ms;
+uint32_t video_frames_completed;
+
+void video_send_frame(void) {
+  if (!tud_video_n_streaming(0, 0)) {
+    video_handle = (struct video_handle_t){0};
+    return;
+  }
+
+  /*
+   * offset is used as the capture pipeline phase while a frame is being
+   * prepared. Once a JPEG is ready, it is the USB transfer offset.
+   */
+  if (!video_handle.ready && video_handle.buffer == NULL &&
+      video_handle.offset == 0U) {
+    if (camera_capture() == 0) {
+      video_handle.offset = 1U;
+    }
+    return;
+  }
+
+  if (!video_handle.ready && video_handle.offset == 1U) {
+    uint8_t *rgb565 = camera_get_rgb565();
+
+    if (rgb565 != NULL) {
+      if (camera_convert_jpeg(rgb565) != 0) {
+        printf("Failed to convert camera frame to JPEG\r\n");
+        video_handle = (struct video_handle_t){0};
+      } else {
+        video_handle.offset = 2U;
+      }
+    }
+    return;
+  }
+
+  if (!video_handle.ready && video_handle.offset == 2U) {
+    uint8_t *jpeg = camera_get_jpeg_buffer();
+    uint32_t jpeg_size = camera_get_jpeg_size();
+
+    if (jpeg != NULL && jpeg_size != 0U) {
+      video_handle.buffer = jpeg;
+      video_handle.size = jpeg_size;
+      video_handle.offset = 0U;
+      video_handle.ready = true;
+    }
+    return;
+  }
+
+  if (!video_handle.ready || video_handle.offset == video_handle.size) {
+    return;
+  }
+
+  uint32_t const now = tusb_time_millis_api();
+  if (now - last_frame_ms < interval_ms) {
+    return;
+  }
+
+  if (tud_video_n_frame_xfer(0, 0, video_handle.buffer,
+                             video_handle.size)) {
+    video_handle.offset = video_handle.size;
+    last_frame_ms = now;
+  }
+}
+
+void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx)
+{
+  (void) ctl_idx;
+  (void) stm_idx;
+  video_handle = (struct video_handle_t){0};
+  video_frames_completed++;
+}
+
+int tud_video_commit_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx,
+                        video_probe_and_commit_control_t const *parameters)
+{
+  (void) ctl_idx;
+  (void) stm_idx;
+
+  interval_ms = parameters->dwFrameInterval / 10000U;
+  if (interval_ms == 0U) {
+    interval_ms = 1U;
+  }
+
+  return VIDEO_ERROR_NONE;
 }

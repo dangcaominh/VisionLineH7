@@ -24,6 +24,7 @@
 #include "ov5640.h"
 #include "tusb.h"
 #include "sys_mode.h"
+#include "app_usb_webcam.h"
 #include "images.h"
 #include "usb_descriptor.h"
 #include <stdio.h>
@@ -86,13 +87,22 @@ static void MX_USB_OTG_HS_PCD_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+void tud_mount_cb(void) {
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
+}
+
+void tud_umount_cb(void) {
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0);
+}
+
 uint32_t tusb_time_millis_api(void)
 {
   return HAL_GetTick();
 }
 
 /**
- * @brief  Overload hàm printf bằng cổng CDC của USB FS.
+ * @brief  Overload hàm printf bằng cổng CDC của USB HS.
  */
 int _write(int file, char *data, int len)
 {
@@ -103,73 +113,6 @@ int _write(int file, char *data, int len)
 
   return (int) written;
 }
-
-typedef struct {
-  uint32_t       size;
-  uint8_t const *buffer;
-} video_frame_t;
-
-static video_frame_t const frames[] = {
-  {color_bar_0_jpg_len, color_bar_0_jpg},
-  {color_bar_1_jpg_len, color_bar_1_jpg},
-  {color_bar_2_jpg_len, color_bar_2_jpg},
-  {color_bar_3_jpg_len, color_bar_3_jpg},
-  {color_bar_4_jpg_len, color_bar_4_jpg},
-  {color_bar_5_jpg_len, color_bar_5_jpg},
-  {color_bar_6_jpg_len, color_bar_6_jpg},
-  {color_bar_7_jpg_len, color_bar_7_jpg},
-};
-
-static unsigned frame_num = 0;
-static unsigned tx_busy = 0;
-static unsigned interval_ms = 1000 / FRAME_RATE;
-static uint32_t video_frames_completed = 0;
-
-static void video_send_frame(void) {
-  static uint32_t start_ms = 0;
-
-  if (!tud_video_n_streaming(0, 0)) {
-    frame_num = 0;
-    tx_busy = 0;
-    return;
-  }
-
-  uint32_t const now = tusb_time_millis_api();
-  if (tx_busy || (now - start_ms < interval_ms)) {
-    return;
-  }
-
-  video_frame_t const *frame = &frames[frame_num % 8];
-
-  if (tud_video_n_frame_xfer(0, 0, (void *) frame->buffer, frame->size)) {
-    tx_busy = 1;
-    start_ms = now;
-  }
-}
-
-void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx)
-{
-  (void) ctl_idx;
-  (void) stm_idx;
-  tx_busy = 0;
-  frame_num++;
-  video_frames_completed++;
-}
-
-int tud_video_commit_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx,
-                        video_probe_and_commit_control_t const *parameters)
-{
-  (void) ctl_idx;
-  (void) stm_idx;
-
-  interval_ms = parameters->dwFrameInterval / 10000U;
-  if (interval_ms == 0U) {
-    interval_ms = 1U;
-  }
-
-  return VIDEO_ERROR_NONE;
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -247,8 +190,9 @@ int main(void)
 	{
 	  static uint32_t benchmark_start_ms = 0;
 	  static uint32_t benchmark_start_frames = 0;
-
+    
 	  tud_task();
+    video_send_frame();
 
 	  uint32_t const now_ms = HAL_GetTick();
 	  if ((now_ms - benchmark_start_ms) >= 1000U)
@@ -263,7 +207,6 @@ int main(void)
 	    benchmark_start_frames = video_frames_completed;
 	  }
 
-	  video_send_frame();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -293,9 +236,7 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI
-                              |RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
@@ -331,7 +272,8 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_HSE, RCC_MCODIV_1);
+  __HAL_RCC_PLLCLKOUT_ENABLE(RCC_PLL1_DIVP);
+  HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_PLLCLK, RCC_MCODIV_15);
 }
 
 /**
@@ -420,7 +362,7 @@ static void MX_DCMI_Init(void)
   /* USER CODE END DCMI_Init 1 */
   hdcmi.Instance = DCMI;
   hdcmi.Init.SynchroMode = DCMI_SYNCHRO_HARDWARE;
-  hdcmi.Init.PCKPolarity = DCMI_PCKPOLARITY_FALLING;
+  hdcmi.Init.PCKPolarity = DCMI_PCKPOLARITY_RISING;
   hdcmi.Init.VSPolarity = DCMI_VSPOLARITY_LOW;
   hdcmi.Init.HSPolarity = DCMI_HSPOLARITY_LOW;
   hdcmi.Init.CaptureRate = DCMI_CR_ALL_FRAME;

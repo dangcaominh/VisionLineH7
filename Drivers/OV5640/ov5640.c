@@ -51,7 +51,6 @@ uint8_t ov5640_init(void)
 {
 	uint16_t i = 0;
 	uint16_t reg;
-	HAL_Delay(30);
 
 	reg = ov5640_rd_reg(OV5640_CHIPIDH);
 	reg <<= 8;
@@ -61,7 +60,6 @@ uint8_t ov5640_init(void)
 		printf("ID: %d \r\n", reg);
 		return 1;
 	}
-	HAL_Delay(10);
 
 	for (i = 0; i < sizeof(ov5640_init_table) / (2 * sizeof(ov5640_init_table[0])); i++)
 	{

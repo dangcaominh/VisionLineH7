@@ -217,35 +217,35 @@ void HAL_DCMI_MspInit(DCMI_HandleTypeDef* hdcmi)
     GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_0|GPIO_PIN_1;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF13_DCMI;
     HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_6|GPIO_PIN_9|GPIO_PIN_10;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF13_DCMI;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = GPIO_PIN_11;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF13_DCMI;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF13_DCMI;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF13_DCMI;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -260,7 +260,10 @@ void HAL_DCMI_MspInit(DCMI_HandleTypeDef* hdcmi)
     hdma_dcmi.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
     hdma_dcmi.Init.Mode = DMA_NORMAL;
     hdma_dcmi.Init.Priority = DMA_PRIORITY_VERY_HIGH;
-    hdma_dcmi.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    hdma_dcmi.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+    hdma_dcmi.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+    hdma_dcmi.Init.MemBurst = DMA_MBURST_SINGLE;
+    hdma_dcmi.Init.PeriphBurst = DMA_PBURST_SINGLE;
     if (HAL_DMA_Init(&hdma_dcmi) != HAL_OK)
     {
       Error_Handler();
@@ -429,11 +432,11 @@ void HAL_JPEG_MspInit(JPEG_HandleTypeDef* hjpeg)
     hmdma_jpeg_infifo_th.Instance = MDMA_Channel0;
     hmdma_jpeg_infifo_th.Init.Request = MDMA_REQUEST_JPEG_INFIFO_TH;
     hmdma_jpeg_infifo_th.Init.TransferTriggerMode = MDMA_BUFFER_TRANSFER;
-    hmdma_jpeg_infifo_th.Init.Priority = MDMA_PRIORITY_HIGH;
+    hmdma_jpeg_infifo_th.Init.Priority = MDMA_PRIORITY_VERY_HIGH;
     hmdma_jpeg_infifo_th.Init.Endianness = MDMA_LITTLE_ENDIANNESS_PRESERVE;
-    hmdma_jpeg_infifo_th.Init.SourceInc = MDMA_SRC_INC_BYTE;
+    hmdma_jpeg_infifo_th.Init.SourceInc = MDMA_SRC_INC_WORD;
     hmdma_jpeg_infifo_th.Init.DestinationInc = MDMA_DEST_INC_DISABLE;
-    hmdma_jpeg_infifo_th.Init.SourceDataSize = MDMA_SRC_DATASIZE_BYTE;
+    hmdma_jpeg_infifo_th.Init.SourceDataSize = MDMA_SRC_DATASIZE_WORD;
     hmdma_jpeg_infifo_th.Init.DestDataSize = MDMA_DEST_DATASIZE_WORD;
     hmdma_jpeg_infifo_th.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
     hmdma_jpeg_infifo_th.Init.BufferTransferLength = 32;
@@ -457,12 +460,12 @@ void HAL_JPEG_MspInit(JPEG_HandleTypeDef* hjpeg)
     hmdma_jpeg_outfifo_th.Instance = MDMA_Channel1;
     hmdma_jpeg_outfifo_th.Init.Request = MDMA_REQUEST_JPEG_OUTFIFO_TH;
     hmdma_jpeg_outfifo_th.Init.TransferTriggerMode = MDMA_BUFFER_TRANSFER;
-    hmdma_jpeg_outfifo_th.Init.Priority = MDMA_PRIORITY_HIGH;
+    hmdma_jpeg_outfifo_th.Init.Priority = MDMA_PRIORITY_VERY_HIGH;
     hmdma_jpeg_outfifo_th.Init.Endianness = MDMA_LITTLE_ENDIANNESS_PRESERVE;
     hmdma_jpeg_outfifo_th.Init.SourceInc = MDMA_SRC_INC_DISABLE;
-    hmdma_jpeg_outfifo_th.Init.DestinationInc = MDMA_DEST_INC_BYTE;
+    hmdma_jpeg_outfifo_th.Init.DestinationInc = MDMA_DEST_INC_WORD;
     hmdma_jpeg_outfifo_th.Init.SourceDataSize = MDMA_SRC_DATASIZE_WORD;
-    hmdma_jpeg_outfifo_th.Init.DestDataSize = MDMA_DEST_DATASIZE_BYTE;
+    hmdma_jpeg_outfifo_th.Init.DestDataSize = MDMA_DEST_DATASIZE_WORD;
     hmdma_jpeg_outfifo_th.Init.DataAlignment = MDMA_DATAALIGN_PACKENABLE;
     hmdma_jpeg_outfifo_th.Init.BufferTransferLength = 32;
     hmdma_jpeg_outfifo_th.Init.SourceBurst = MDMA_SOURCE_BURST_SINGLE;

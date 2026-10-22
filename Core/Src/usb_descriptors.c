@@ -258,7 +258,7 @@ static char const *string_desc_arr[] = {
   "TinyUSB Device",              // 2: Product
   NULL,                          // 3: Serials will use unique ID if possible
   "TinyUSB CDC",                 // 4: CDC Interface
-  "UVC Control",                 // 5: UVC Interface
+  "STM32 UVC",                   // 5: UVC Interface
   "UVC Streaming",               // 6: UVC Interface
 };
 
