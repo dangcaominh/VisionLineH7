@@ -72,15 +72,16 @@ int tb6612fng_set_direction(motor_id_t id, direction_t direction)
         HAL_GPIO_WritePin(AIN_1_GPIO_Port, AIN_1_Pin, in1);
         HAL_GPIO_WritePin(AIN_2_GPIO_Port, AIN_2_Pin, in2);
     }
-    else if(id == MOTOR_RIGHT || id == MOTOR_ALL)
+    if(id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
         HAL_GPIO_WritePin(BIN_1_GPIO_Port, BIN_1_Pin, in1);
         HAL_GPIO_WritePin(BIN_2_GPIO_Port, BIN_2_Pin, in2);
     }
-    else
+
+    if(id != MOTOR_LEFT && id != MOTOR_RIGHT && id != MOTOR_ALL)
     {
         /* Invalid motor id */
-        printf("Invalid motor id");
+        printf("Invalid motor id\r\n");
         return -1;
     }
     return 0;
@@ -95,18 +96,27 @@ int tb6612fng_set_direction(motor_id_t id, direction_t direction)
  */
 int tb6612fng_set_speed(motor_id_t id, uint32_t duty)
 {
+    uint32_t max_duty = __HAL_TIM_GET_AUTORELOAD(&htim1);
+
+    if(duty > max_duty)
+    {
+        duty = max_duty;
+    }
+
     if(id == MOTOR_LEFT || id == MOTOR_ALL)
     {
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, duty);
     }
-    else if(id == MOTOR_RIGHT || id == MOTOR_ALL)
+
+    if(id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, duty);
     }
-    else
+
+    if(id != MOTOR_LEFT && id != MOTOR_RIGHT && id != MOTOR_ALL)
     {
         /* Invalid motor id */
-        printf("Invalid motor id");
+        printf("Invalid motor id\r\n");
         return -1;
     }
     return 0;

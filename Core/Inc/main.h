@@ -87,6 +87,7 @@ void Error_Handler(void);
 #define ULPI_RST_GPIO_Port GPIOB
 #define USER_BUTTON_Pin GPIO_PIN_15
 #define USER_BUTTON_GPIO_Port GPIOB
+#define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
 #define BIN_2_Pin GPIO_PIN_9
 #define BIN_2_GPIO_Port GPIOD
 #define BIN_1_Pin GPIO_PIN_10

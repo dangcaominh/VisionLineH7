@@ -88,6 +88,23 @@ static void MX_USB_OTG_HS_PCD_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+sys_run_mode_t run_mode = SYS_MODE_IDLE;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    static uint32_t last_tick = 0;
+    uint32_t now = HAL_GetTick();
+
+    if (GPIO_Pin == USER_BUTTON_Pin && (uint32_t)(now - last_tick) >= 30U)
+    {
+      last_tick = now;
+      if (run_mode != SYS_MODE_STOPPED)
+      {
+        run_mode++;
+      }
+    }
+}
+
 void tud_mount_cb(void) {
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
 }
@@ -179,7 +196,7 @@ int main(void)
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);
 
   sys_mode_t current_mode = sys_mode_init();
-	sys_mode_run(current_mode);
+  
   sys_mode_stop(current_mode);
   
   /* USER CODE END 2 */
@@ -188,24 +205,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-	  static uint32_t benchmark_start_ms = 0;
-	  static uint32_t benchmark_start_frames = 0;
-    
-	  tud_task();
-    video_send_frame();
-
-	  uint32_t const now_ms = HAL_GetTick();
-	  if ((now_ms - benchmark_start_ms) >= 1000U)
-	  {
-	    uint32_t const elapsed_ms = now_ms - benchmark_start_ms;
-	    uint32_t const completed = video_frames_completed - benchmark_start_frames;
-	    printf("UVC FPS: %lu (frames: %lu, elapsed: %lu ms)\r\n",
-	           (unsigned long) ((completed * 1000U) / elapsed_ms),
-	           (unsigned long) completed,
-	           (unsigned long) elapsed_ms);
-	    benchmark_start_ms = now_ms;
-	    benchmark_start_frames = video_frames_completed;
-	  }
+    if (run_mode == SYS_MODE_RUNNING)
+    {
+      sys_mode_run(current_mode);
+    }
+    else if (run_mode == SYS_MODE_STOPPED)
+    {
+      sys_mode_stop(current_mode);
+      run_mode = SYS_MODE_IDLE;
+    }
+    tud_task();
 
     /* USER CODE END WHILE */
 
@@ -478,7 +487,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 65535;
+  htim1.Init.Period = 11999;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
@@ -554,7 +563,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -603,7 +612,7 @@ static void MX_TIM4_Init(void)
   htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -749,7 +758,7 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : USER_BUTTON_Pin */
   GPIO_InitStruct.Pin = USER_BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
@@ -769,6 +778,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(XCLK_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(USER_BUTTON_EXTI_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USER_BUTTON_EXTI_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

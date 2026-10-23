@@ -37,6 +37,12 @@ typedef enum
     SYS_MODE_COUNT,                /* Total number of supported modes */
 } sys_mode_t;
 
+typedef enum
+{
+    SYS_MODE_IDLE,
+    SYS_MODE_RUNNING,
+    SYS_MODE_STOPPED
+} sys_run_mode_t;
 
 /**
  * @brief System Mode Interface Operations

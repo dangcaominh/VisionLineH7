@@ -19,8 +19,8 @@
 #include "camera.h"
 
 uint8_t rgb565_buffer[RGB565_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
-uint8_t jpeg_buffer[JPEG_SIZE] __attribute__((section(".ahb_sram"), aligned(32)));
-uint8_t ycbcr_buffer[RGB565_SIZE] __attribute__((section(".ahb_sram"), aligned(32)));
+uint8_t jpeg_buffer[JPEG_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
+uint8_t ycbcr_buffer[RGB565_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
 
 static uint32_t jpeg_size = 0;
 
@@ -193,7 +193,6 @@ void HAL_JPEG_EncodeCpltCallback(JPEG_HandleTypeDef* hjpeg)
 	(void)hjpeg;
 	SCB_CleanDCache_by_Addr((uint32_t*)jpeg_buffer, JPEG_SIZE);
 	jpeg_done = check_jpeg_eoi(jpeg_buffer, jpeg_size);
-	printf("jpeg_done = %d, jpeg_size = %u\r\n", jpeg_done, jpeg_size);
 }
 
 void HAL_JPEG_ErrorCallback(JPEG_HandleTypeDef *hjpeg)
