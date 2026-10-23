@@ -20,6 +20,8 @@
 #include "tusb.h"
 #include "usb_descriptor.h"
 
+extern JPEG_HandleTypeDef hjpeg;
+
 const struct sys_mode_api usb_webcam_api =
 {
     .init = usb_webcam_init,

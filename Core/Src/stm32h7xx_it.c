@@ -267,7 +267,6 @@ void DCMI_IRQHandler(void)
 void JPEG_IRQHandler(void)
 {
   /* USER CODE BEGIN JPEG_IRQn 0 */
-
   /* USER CODE END JPEG_IRQn 0 */
   HAL_JPEG_IRQHandler(&hjpeg);
   /* USER CODE BEGIN JPEG_IRQn 1 */
@@ -281,10 +280,9 @@ void JPEG_IRQHandler(void)
 void MDMA_IRQHandler(void)
 {
   /* USER CODE BEGIN MDMA_IRQn 0 */
-
   /* USER CODE END MDMA_IRQn 0 */
-  HAL_MDMA_IRQHandler(&hmdma_jpeg_infifo_th);
   HAL_MDMA_IRQHandler(&hmdma_jpeg_outfifo_th);
+  HAL_MDMA_IRQHandler(&hmdma_jpeg_infifo_th);
   /* USER CODE BEGIN MDMA_IRQn 1 */
 
   /* USER CODE END MDMA_IRQn 1 */

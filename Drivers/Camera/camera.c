@@ -23,10 +23,13 @@ uint8_t jpeg_buffer[JPEG_SIZE] __attribute__((section(".axi_sram"), aligned(32))
 uint8_t ycbcr_buffer[RGB565_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
 
 static uint32_t jpeg_size = 0;
+#define JPEG_INPUT_DMA_CHUNK_SIZE 65504U
 
 
 volatile static bool rgb_done = false;
 volatile static bool jpeg_done = false;
+static uint32_t jpeg_input_total_length;
+static uint32_t jpeg_input_offset;
 
 extern DCMI_HandleTypeDef hdcmi;
 extern JPEG_HandleTypeDef hjpeg;
@@ -67,10 +70,11 @@ int camera_init(void)
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
 
 	JPEG_InitColorTables();
-	HAL_JPEG_ConfigEncoding(&hjpeg, &jpeg_config);
+	HAL_JPEG_Init(&hjpeg);
 	
 	return 0;
 }
+
 
 int camera_capture()
 {
@@ -78,7 +82,9 @@ int camera_capture()
 	HAL_DCMI_Stop(&hdcmi);
 	rgb_done = false;
 	SCB_InvalidateDCache_by_Addr((uint32_t*)rgb565_buffer, RGB565_SIZE);
+
 	status = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)rgb565_buffer, RGB565_SIZE / 4);
+
 	if (status != HAL_OK)
 	{
 		printf("Cannot start DCMI DMA \r\n");
@@ -127,9 +133,13 @@ int camera_convert_jpeg(uint8_t* ptr)
 			 &converted_data_count);
 
 	SCB_CleanDCache_by_Addr((uint32_t *)ycbcr_buffer, RGB565_SIZE);
-	SCB_CleanDCache_by_Addr((uint32_t *)jpeg_buffer, JPEG_SIZE);
-	if (HAL_JPEG_Encode(&hjpeg, ycbcr_buffer, converted_data_count,
-				jpeg_buffer, JPEG_SIZE, HAL_MAX_DELAY) != HAL_OK)
+	SCB_CleanDCache_by_Addr((uint32_t*)jpeg_buffer, JPEG_SIZE);
+	HAL_JPEG_ConfigEncoding(&hjpeg, &jpeg_config);
+	jpeg_input_total_length = converted_data_count;
+	jpeg_input_offset = (converted_data_count > JPEG_INPUT_DMA_CHUNK_SIZE) ?
+		JPEG_INPUT_DMA_CHUNK_SIZE : converted_data_count;
+
+	if (HAL_JPEG_Encode_DMA(&hjpeg, ycbcr_buffer, jpeg_input_offset, jpeg_buffer, JPEG_SIZE) != HAL_OK)
 	{
 		return -1;
 	}
@@ -159,9 +169,33 @@ uint32_t camera_get_jpeg_size()
 	}
 }
 
-
-void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef *hjpeg, uint8_t *pDataOut, uint32_t OutDataLength)
+void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg,
+                              uint32_t NbEncodedData)
 {
+	(void)NbEncodedData;
+
+	if (jpeg_input_offset < jpeg_input_total_length)
+	{
+		uint32_t remaining = jpeg_input_total_length - jpeg_input_offset;
+		uint32_t next_length = (remaining > JPEG_INPUT_DMA_CHUNK_SIZE) ?
+			JPEG_INPUT_DMA_CHUNK_SIZE : remaining;
+
+		HAL_JPEG_ConfigInputBuffer(
+			hjpeg,
+			ycbcr_buffer + jpeg_input_offset,
+			next_length);
+		jpeg_input_offset += next_length;
+	}
+	else
+    {
+		HAL_JPEG_ConfigInputBuffer(hjpeg, ycbcr_buffer + jpeg_input_offset, 0U);
+    }
+}
+
+void HAL_JPEG_DataReadyCallback(JPEG_HandleTypeDef* hjpeg, uint8_t* pDataOut, uint32_t OutDataLength)
+{
+	(void)hjpeg;
+	(void)pDataOut;
 	jpeg_size += OutDataLength;
 }
 
@@ -173,7 +207,7 @@ static bool check_jpeg_eoi(uint8_t *buf, uint32_t len)
         return false;
     }
 
-    for (uint32_t i = len + 2U;; i--)
+    for (uint32_t i = len - 2U;; i--)
     {
         if (buf[i] == 0xffU && buf[i + 1U] == 0xd9U)
 		{
