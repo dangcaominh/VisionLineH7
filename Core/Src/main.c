@@ -25,7 +25,6 @@
 #include "tusb.h"
 #include "sys_mode.h"
 #include "app_usb_webcam.h"
-#include "images.h"
 #include "usb_descriptor.h"
 #include <stdio.h>
 /* USER CODE END Includes */
