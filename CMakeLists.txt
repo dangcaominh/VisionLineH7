@@ -17,6 +17,7 @@ file(GLOB_RECURSE ITR20001_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Driver
 file(GLOB_RECURSE Encoder_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/Encoder/*.c")
 file(GLOB_RECURSE TB6612FNG_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/TB6612FNG/*.c")
 file(GLOB_RECURSE Camera_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/Camera/*.c")
+file(GLOB_RECURSE USB_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/USB/*.c")
 file(GLOB_RECURSE APPLICATION_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Src/*.c")
 
 
@@ -59,14 +60,13 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${Encoder_SOURCES}
     ${TB6612FNG_SOURCES}
     ${Camera_SOURCES}
+    ${USB_SOURCES}
     ${APPLICATION_SOURCES}
-    Core/Src/usb_descriptors.c
     tinyusb/src/class/cdc/cdc_device.c
     tinyusb/src/class/video/video_device.c
     tinyusb/src/tusb.c
     tinyusb/src/device/usbd.c
     tinyusb/src/common/tusb_fifo.c
-
     tinyusb/src/portable/synopsys/dwc2/dcd_dwc2.c
     tinyusb/src/portable/synopsys/dwc2/dwc2_common.c
 )
@@ -74,12 +74,12 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
-    Core/Src
     Drivers/OV5640
     Drivers/ITR20001
     Drivers/Encoder
     Drivers/TB6612FNG
     Drivers/Camera
+    Drivers/USB
     tinyusb/src
     tinyusb/src/common
     tinyusb/src/portable/synopsys/dwc2

@@ -25,7 +25,6 @@
 #include "tusb.h"
 #include "sys_mode.h"
 #include "app_usb_webcam.h"
-#include "images.h"
 #include "usb_descriptor.h"
 #include <stdio.h>
 /* USER CODE END Includes */
@@ -282,7 +281,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   __HAL_RCC_PLLCLKOUT_ENABLE(RCC_PLL1_DIVP);
-  HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_PLLCLK, RCC_MCODIV_15);
+  HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_PLLCLK, RCC_MCODIV_13);
 }
 
 /**
