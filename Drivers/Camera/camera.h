@@ -19,7 +19,13 @@
 #define RGB565_SIZE                (IMAGE_WIDTH * IMAGE_HEIGHT * 2U)
 #define JPEG_SIZE                  (32 * 1024U)
 
-
+typedef struct
+{
+  uint8_t *Buffer;
+  uint32_t Size;
+  uint32_t InputOffset;
+  bool Done;
+}JPEG_DataTypeDef;
 
 int camera_init(void);
 int camera_capture();

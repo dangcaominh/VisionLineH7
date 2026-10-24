@@ -116,7 +116,7 @@ const uint16_t ov5640_rgb565_init[]=
 	OV5640_TIMING_DVPVO_HIGH, 0x02, // Output height high byte
 	OV5640_TIMING_DVPVO_LOW, 0xd0, // Output height low byte
 	OV5640_TIMING_HTS_HIGH, 0x05, // Horizontal total high byte
-	OV5640_TIMING_HTS_LOW, 0xF8, // Horizontal total low byte
+	OV5640_TIMING_HTS_LOW, 0xE8, // Horizontal total low byte
 	OV5640_TIMING_VTS_HIGH, 0x03, // Vertical total high byte
 	OV5640_TIMING_VTS_LOW, 0x84, // Vertical total low byte
 	OV5640_TIMING_VOFFSET_LOW, 0x04, // Vertical timing offset
@@ -368,9 +368,6 @@ const uint16_t ov5640_init_table[]=
 };
 
 #endif
-
-
-
 
 
 
