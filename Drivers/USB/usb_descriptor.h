@@ -36,7 +36,7 @@
 
 #define FRAME_WIDTH   320
 #define FRAME_HEIGHT  240
-#define FRAME_RATE    60
+#define FRAME_RATE    120
 
 // NOTE: descriptor template is not used but leave here as reference
 

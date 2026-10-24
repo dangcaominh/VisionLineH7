@@ -101,8 +101,8 @@ const uint16_t ov5640_rgb565_init[]=
 	OV5640_LIGHTMETER1_TH_LOW, 0x07, // Light-meter threshold
 	OV5640_TIMING_TC_REG20, 0x46, // Vertical flip
 	OV5640_TIMING_TC_REG21, 0x00, // Disable horizontal mirror
-	OV5640_TIMING_X_INC, 0x31, // Horizontal sampling
-	OV5640_TIMING_Y_INC, 0x31, // Vertical sampling
+	OV5640_TIMING_X_INC, 0x71, // Horizontal sampling
+	OV5640_TIMING_Y_INC, 0x35, // Vertical sampling
 	OV5640_TIMING_HS_HIGH, 0x00, // Crop start X high byte
 	OV5640_TIMING_HS_LOW, 0x00, // Crop start X low byte
 	OV5640_TIMING_VS_HIGH, 0x00, // Crop start Y high byte
@@ -116,9 +116,9 @@ const uint16_t ov5640_rgb565_init[]=
 	OV5640_TIMING_DVPVO_HIGH, 0x02, // Output height high byte
 	OV5640_TIMING_DVPVO_LOW, 0xd0, // Output height low byte
 	OV5640_TIMING_HTS_HIGH, 0x05, // Horizontal total high byte
-	OV5640_TIMING_HTS_LOW, 0xE8, // Horizontal total low byte
-	OV5640_TIMING_VTS_HIGH, 0x03, // Vertical total high byte
-	OV5640_TIMING_VTS_LOW, 0x84, // Vertical total low byte
+	OV5640_TIMING_HTS_LOW, 0x98, // Horizontal total low byte
+	OV5640_TIMING_VTS_HIGH, 0x01, // Vertical total high byte
+	OV5640_TIMING_VTS_LOW, 0xC4, // Vertical total low byte
 	OV5640_TIMING_VOFFSET_LOW, 0x04, // Vertical timing offset
 	OV5640_REG_3618, 0x00,
 	OV5640_REG_3612, 0x29,
