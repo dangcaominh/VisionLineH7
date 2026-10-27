@@ -95,7 +95,9 @@ static void usb_webcam_stop()
 
 
     static struct video_handle_t video_handle;
+#if !CFG_TUD_VIDEO_STREAMING_BULK
     static uint32_t last_frame_ms;
+#endif
     uint32_t video_frames_completed;
 
     void video_send_frame(void) {
@@ -157,15 +159,19 @@ static void usb_webcam_stop()
       return;
     }
 
+#if !CFG_TUD_VIDEO_STREAMING_BULK
     uint32_t const now = tusb_time_millis_api();
     if (now - last_frame_ms < interval_ms) {
       return;
     }
+#endif
 
     if (tud_video_n_frame_xfer(0, 0, video_handle.buffer,
       video_handle.size)) {
       video_handle.offset = video_handle.size;
+#if !CFG_TUD_VIDEO_STREAMING_BULK
       last_frame_ms = now;
+#endif
     }
   }
 
