@@ -126,6 +126,7 @@ int _write(int file, char *data, int len)
 
   uint32_t written = tud_cdc_n_write(0, data, (uint32_t) len);
   tud_cdc_n_write_flush(0);
+  tud_task_ext(0, false);
 
   return (int) written;
 }

@@ -20,7 +20,7 @@
 
 uint8_t rgb565_buffer[RGB565_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
 uint8_t jpeg_buffer[JPEG_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
-uint8_t ycbcr_buffer[RGB565_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
+uint8_t ycbcr_buffer[RGB565_SIZE] __attribute__((section(".ahb_sram"), aligned(32)));
 
 #define INPUT_CHUNK_SIZE 4096U
 #define min(a, b)	(a > b) ? b : a
@@ -71,6 +71,7 @@ int camera_init(void)
 	ov5640_brightness(4);
 	ov5640_contrast(3);
 	ov5640_sharpness(33);
+	ov5640_auto_focus();
 	ov5640_rgb565_mode();
 	ov5640_out_size_set(0, 0, 320, 240);
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
