@@ -17,20 +17,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-struct video_handle_t
-{
-	uint8_t *buffer;
-	uint32_t offset;
-	uint32_t size;
-	bool ready;		/* Buffer is ready to transmit */
-};
-
 
 static int usb_webcam_init(void);
 static void usb_webcam_run(void);
 static void usb_webcam_stop(void);
 
-extern uint32_t video_frames_completed;
-void video_send_frame(void);
 
 #endif /* APP_USB_WEBCAM_H */

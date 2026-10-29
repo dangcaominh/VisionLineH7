@@ -111,7 +111,13 @@ enum {
   ITF_NUM_TOTAL
 };
 
-#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + CFG_TUD_CDC * TUD_CDC_DESC_LEN + TUD_VIDEO_CAPTURE_DESC_MJPEG_BULK_LEN)
+#if USE_MJPEG == 1
+#define VIDEO_CAPTURE_DESC_LEN TUD_VIDEO_CAPTURE_DESC_MJPEG_BULK_LEN
+#else
+#define VIDEO_CAPTURE_DESC_LEN TUD_VIDEO_CAPTURE_DESC_UNCOMPR_BULK_LEN
+#endif
+
+#define CONFIG_TOTAL_LEN   (TUD_CONFIG_DESC_LEN + CFG_TUD_CDC * TUD_CDC_DESC_LEN + VIDEO_CAPTURE_DESC_LEN)
 
 #if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
   // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
@@ -182,7 +188,11 @@ static uint8_t const desc_fs_configuration[] = {
   // 2nd CDC: Interface number, string index, EP notification address and size, EP data address (out, in) and size.
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, STRID_CDC, EPNUM_CDC_1_NOTIF, 16, EPNUM_CDC_1_OUT, EPNUM_CDC_1_IN, 64),
 #endif
+#if USE_MJPEG == 1
   TUD_VIDEO_CAPTURE_DESCRIPTOR_MJPEG_BULK(STRID_UVC_CONTROL, EPNUM_VIDEO_IN, FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE, 64),
+#else
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_UNCOMPR_BULK(STRID_UVC_CONTROL, EPNUM_VIDEO_IN, FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE, 64),
+#endif
 };
 
 #if TUD_OPT_HIGH_SPEED
@@ -198,7 +208,11 @@ static uint8_t const desc_hs_configuration[] = {
   // 2nd CDC: Interface number, string index, EP notification address and size, EP data address (out, in) and size.
   TUD_CDC_DESCRIPTOR(ITF_NUM_CDC_1, STRID_CDC, EPNUM_CDC_1_NOTIF, 16, EPNUM_CDC_1_OUT, EPNUM_CDC_1_IN, 512),
 #endif
+#if USE_MJPEG == 1
   TUD_VIDEO_CAPTURE_DESCRIPTOR_MJPEG_BULK(STRID_UVC_CONTROL, EPNUM_VIDEO_IN, FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE, 512),
+#else
+  TUD_VIDEO_CAPTURE_DESCRIPTOR_UNCOMPR_BULK(STRID_UVC_CONTROL, EPNUM_VIDEO_IN, FRAME_WIDTH, FRAME_HEIGHT, FRAME_RATE, 512),
+#endif
 };
 
 // device qualifier is mostly similar to device descriptor since we don't change configuration based on speed

@@ -29,6 +29,8 @@ extern DCMI_HandleTypeDef hdcmi;
 extern JPEG_HandleTypeDef hjpeg;
 
 volatile static bool rgb_done = false;
+volatile static uint32_t capture_started_ms;
+volatile static uint32_t capture_time_ms;
 
 static volatile JPEG_DataTypeDef jpeg_data = {
 	.Buffer = jpeg_buffer,
@@ -47,7 +49,9 @@ JPEG_ConfTypeDef jpeg_config = {
 
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef* hdcmi)
 {
+	UNUSED(hdcmi);
 	SCB_InvalidateDCache_by_Addr((uint32_t *)rgb565_buffer, RGB565_SIZE);
+	capture_time_ms = HAL_GetTick() - capture_started_ms;
 	rgb_done = true;
 }
 
@@ -71,7 +75,6 @@ int camera_init(void)
 	ov5640_brightness(4);
 	ov5640_contrast(3);
 	ov5640_sharpness(33);
-	ov5640_auto_focus();
 	ov5640_rgb565_mode();
 	ov5640_out_size_set(0, 0, 320, 240);
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
@@ -80,28 +83,25 @@ int camera_init(void)
 	HAL_JPEG_Init(&hjpeg);
 
 	uint32_t mcu = 0;
+
 	if (JPEG_GetEncodeColorConvertFunc(&jpeg_config, &convert_function, &mcu) != HAL_OK)
 	{
 		printf("Failed to get color conversion function\r\n");
 		return -1;
     }
 
-
 	return 0;
 }
 
 
-int camera_capture()
+int camera_capture(void)
 {
 	HAL_StatusTypeDef status;
 	rgb_done = false;
+	capture_started_ms = HAL_GetTick();
 	SCB_InvalidateDCache_by_Addr((uint32_t*)rgb565_buffer, RGB565_SIZE);
 
-	status = HAL_DCMI_Start_DMA(
-		&hdcmi,
-		DCMI_MODE_SNAPSHOT,
-		(uint32_t)rgb565_buffer,
-		RGB565_SIZE / 4U);
+	status = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)rgb565_buffer, RGB565_SIZE / 4U);
 
 	if (status != HAL_OK)
 	{
@@ -112,11 +112,15 @@ int camera_capture()
 	return 0;
 }
 
+uint32_t camera_get_capture_time_ms(void)
+{
+	return capture_time_ms;
+}
+
 uint8_t* camera_get_rgb565()
 {
 	if (rgb_done)
 	{
-		rgb_done = false;
 		return rgb565_buffer;
 	}
 	else
@@ -179,7 +183,10 @@ uint32_t camera_get_jpeg_size()
 	}
 }
 
-
+void camera_stop()
+{
+	HAL_DCMI_Stop(&hdcmi);
+}
 
 void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbEncodedData)
 {

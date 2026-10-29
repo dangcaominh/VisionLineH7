@@ -193,8 +193,6 @@ int main(void)
     Error_Handler();
   }
 
-  HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);
-
   sys_mode_t current_mode = sys_mode_init();
   
   sys_mode_stop(current_mode);
@@ -831,8 +829,8 @@ void Error_Handler(void)
 	/* User can add his own implementation to report the HAL error return state */
 	__disable_irq();
 	while (1)
-	{
-	}
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 #ifdef USE_FULL_ASSERT
