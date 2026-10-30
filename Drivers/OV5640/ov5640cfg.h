@@ -92,8 +92,8 @@ const uint16_t ov5640_jpeg_init[] =
 
 const uint16_t ov5640_rgb565_init[]=
 {
-    OV5640_FORMAT_CTRL00, 0X6F,
-	OV5640_FORMAT_MUX_CTRL, 0x01,
+    OV5640_FORMAT_CTRL00, 0X30,
+	OV5640_FORMAT_MUX_CTRL, 0x00,
 	// Configure the RGB565 output timing.
 	// Input clock: 24 MHz; pixel clock: 42 MHz.
 	OV5640_SC_PLL_CONTRL1, 0x21, // PLL
@@ -118,7 +118,7 @@ const uint16_t ov5640_rgb565_init[]=
 	OV5640_TIMING_HTS_HIGH, 0x05, // Horizontal total high byte
 	OV5640_TIMING_HTS_LOW, 0x98, // Horizontal total low byte
 	OV5640_TIMING_VTS_HIGH, 0x01, // Vertical total high byte
-	OV5640_TIMING_VTS_LOW, 0xC4, // Vertical total low byte
+	OV5640_TIMING_VTS_LOW, 0xB4, // Vertical total low byte
 	OV5640_TIMING_VOFFSET_LOW, 0x04, // Vertical timing offset
 	OV5640_REG_3618, 0x00,
 	OV5640_REG_3612, 0x29,

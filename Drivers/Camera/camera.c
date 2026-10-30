@@ -20,7 +20,7 @@
 
 uint8_t rgb565_buffer[RGB565_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
 uint8_t jpeg_buffer[JPEG_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
-uint8_t ycbcr_buffer[RGB565_SIZE] __attribute__((section(".axi_sram"), aligned(32)));
+uint8_t ycbcr_buffer[RGB565_SIZE] __attribute__((section(".ahb_sram"), aligned(32)));
 
 #define INPUT_CHUNK_SIZE 4096U
 #define min(a, b)	(a > b) ? b : a
@@ -29,6 +29,8 @@ extern DCMI_HandleTypeDef hdcmi;
 extern JPEG_HandleTypeDef hjpeg;
 
 volatile static bool rgb_done = false;
+volatile static uint32_t capture_started_ms;
+volatile static uint32_t capture_time_ms;
 
 static volatile JPEG_DataTypeDef jpeg_data = {
 	.Buffer = jpeg_buffer,
@@ -47,7 +49,9 @@ JPEG_ConfTypeDef jpeg_config = {
 
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef* hdcmi)
 {
+	UNUSED(hdcmi);
 	SCB_InvalidateDCache_by_Addr((uint32_t *)rgb565_buffer, RGB565_SIZE);
+	capture_time_ms = HAL_GetTick() - capture_started_ms;
 	rgb_done = true;
 }
 
@@ -79,28 +83,25 @@ int camera_init(void)
 	HAL_JPEG_Init(&hjpeg);
 
 	uint32_t mcu = 0;
+
 	if (JPEG_GetEncodeColorConvertFunc(&jpeg_config, &convert_function, &mcu) != HAL_OK)
 	{
 		printf("Failed to get color conversion function\r\n");
 		return -1;
     }
 
-
 	return 0;
 }
 
 
-int camera_capture()
+int camera_capture(void)
 {
 	HAL_StatusTypeDef status;
 	rgb_done = false;
+	capture_started_ms = HAL_GetTick();
 	SCB_InvalidateDCache_by_Addr((uint32_t*)rgb565_buffer, RGB565_SIZE);
 
-	status = HAL_DCMI_Start_DMA(
-		&hdcmi,
-		DCMI_MODE_SNAPSHOT,
-		(uint32_t)rgb565_buffer,
-		RGB565_SIZE / 4U);
+	status = HAL_DCMI_Start_DMA(&hdcmi, DCMI_MODE_SNAPSHOT, (uint32_t)rgb565_buffer, RGB565_SIZE / 4U);
 
 	if (status != HAL_OK)
 	{
@@ -111,11 +112,15 @@ int camera_capture()
 	return 0;
 }
 
+uint32_t camera_get_capture_time_ms(void)
+{
+	return capture_time_ms;
+}
+
 uint8_t* camera_get_rgb565()
 {
 	if (rgb_done)
 	{
-		rgb_done = false;
 		return rgb565_buffer;
 	}
 	else
@@ -178,7 +183,10 @@ uint32_t camera_get_jpeg_size()
 	}
 }
 
-
+void camera_stop()
+{
+	HAL_DCMI_Stop(&hdcmi);
+}
 
 void HAL_JPEG_GetDataCallback(JPEG_HandleTypeDef *hjpeg, uint32_t NbEncodedData)
 {

@@ -19,182 +19,73 @@
 #include "camera.h"
 #include "tusb.h"
 #include "usb_descriptor.h"
-
-extern JPEG_HandleTypeDef hjpeg;
-
-static uint32_t frame_started_ms;
-static uint32_t convert_started_ms;
-static uint32_t jpeg_started_ms;
-static uint32_t capture_total_ms;
-static uint32_t convert_total_ms;
-static uint32_t jpeg_total_ms;
-static uint32_t frame_total_ms;
-static uint32_t profile_frames;
-static uint32_t profile_start_ms;
-static uint32_t interval_ms = 1000 / FRAME_RATE;
+#include "usb_video.h"
 
 const struct sys_mode_api usb_webcam_api =
 {
-    .init = usb_webcam_init,
-    .run = usb_webcam_run,
-    .stop = usb_webcam_stop
+	.init = usb_webcam_init,
+	.run = usb_webcam_run,
+	.stop = usb_webcam_stop
 };
 
 
 
 static int usb_webcam_init()
 {
-  camera_init();
-  return 0;
+	camera_init();
+	return 0;
 }
 
 static void usb_webcam_run()
 {
-  static uint32_t benchmark_start_ms = 0;
-  static uint32_t benchmark_start_frames = 0;
-  if (profile_start_ms == 0U)
-  {
-    profile_start_ms = HAL_GetTick();
-  }
-  video_send_frame();
-  uint32_t const now_ms = HAL_GetTick();
-  if ((now_ms - benchmark_start_ms) >= 1000U)
-  {
-    uint32_t const elapsed_ms = now_ms - benchmark_start_ms;
-    uint32_t const completed = video_frames_completed - benchmark_start_frames;
-    printf("UVC FPS: %lu (frames: %lu, elapsed: %lu ms)\r\n",
-      (unsigned long)((completed * 1000U) / elapsed_ms),
-      (unsigned long)completed,
-      (unsigned long)elapsed_ms);
-    if (profile_frames != 0U)
-    {
-      printf("UVC profile interval=%lu capture=%lu convert=%lu jpeg=%lu frame=%lu ms avg over %lu\r\n",
-        (unsigned long)interval_ms,
-        (unsigned long)(capture_total_ms / profile_frames),
-        (unsigned long)(convert_total_ms / profile_frames),
-        (unsigned long)(jpeg_total_ms / profile_frames),
-        (unsigned long)(frame_total_ms / profile_frames),
-        (unsigned long)profile_frames);
-      capture_total_ms = 0U;
-      convert_total_ms = 0U;
-      jpeg_total_ms = 0U;
-      frame_total_ms = 0U;
-      profile_frames = 0U;
-      profile_start_ms = now_ms;
-    }
-    benchmark_start_ms = now_ms;
-    benchmark_start_frames = video_frames_completed;
-  }
+	static uint32_t last_transfer_count;
+
+	uint32_t const transfer_count = usb_video_get_transfer_count();
+	if (transfer_count != last_transfer_count)
+	{
+		printf("capture=%lu ms, usb=%lu ms\r\n",
+			(unsigned long)camera_get_capture_time_ms(),
+			(unsigned long)usb_video_get_transfer_time_ms());
+		last_transfer_count = transfer_count;
+	}
+
+	if (usb_video_is_busy())
+	{
+		return;
+	}
+	camera_capture();
+
+	uint8_t* ptr = camera_get_rgb565();
+	while (ptr == NULL)
+	{
+		tud_task();
+		ptr = camera_get_rgb565();
+	}
+#if USE_MJPEG == 1
+	if (camera_convert_jpeg(ptr) != 0)
+	{
+		return;
+	}
+
+	uint8_t* jpeg_ptr = camera_get_jpeg_buffer();
+
+	while (jpeg_ptr == NULL)
+	{
+		tud_task();
+		jpeg_ptr = camera_get_jpeg_buffer();
+	}
+	HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);
+
+	uint32_t size = camera_get_jpeg_size();
+	usb_set_buffer(jpeg_ptr, size);
+	usb_send_frame();
+#else
+	usb_set_buffer(ptr, RGB565_SIZE);
+	usb_send_frame();
+#endif
 }
 
 static void usb_webcam_stop()
 {
-  
+	camera_stop();
 }
-
-
-
-    static struct video_handle_t video_handle;
-#if !CFG_TUD_VIDEO_STREAMING_BULK
-    static uint32_t last_frame_ms;
-#endif
-    uint32_t video_frames_completed;
-
-    void video_send_frame(void) {
-    if (!tud_video_n_streaming(0, 0)) {
-      video_handle = (struct video_handle_t){ 0 };
-      return;
-    }
-
-    /*
-     * offset is used as the capture pipeline phase while a frame is being
-     * prepared. Once a JPEG is ready, it is the USB transfer offset.
-     */
-    if (!video_handle.ready && video_handle.buffer == NULL &&
-      video_handle.offset == 0U) {
-      if (camera_capture() == 0) {
-        frame_started_ms = HAL_GetTick();
-        video_handle.offset = 1U;
-      }
-      return;
-    }
-
-    if (!video_handle.ready && video_handle.offset == 1U) {
-      uint8_t* rgb565 = camera_get_rgb565();
-
-      if (rgb565 != NULL) {
-        uint32_t const convert_start = HAL_GetTick();
-        capture_total_ms += convert_start - frame_started_ms;
-        convert_started_ms = convert_start;
-        if (camera_convert_jpeg(rgb565) != 0) {
-          printf("Failed to convert camera frame to JPEG\r\n");
-          video_handle = (struct video_handle_t){ 0 };
-        }
-        else {
-          uint32_t const jpeg_start = HAL_GetTick();
-          convert_total_ms += jpeg_start - convert_started_ms;
-          jpeg_started_ms = jpeg_start;
-          video_handle.offset = 2U;
-        }
-      }
-      return;
-    }
-
-    if (!video_handle.ready && video_handle.offset == 2U) {
-      uint8_t* jpeg = camera_get_jpeg_buffer();
-      uint32_t jpeg_size = camera_get_jpeg_size();
-
-      if (jpeg != NULL && jpeg_size != 0U) {
-        uint32_t const frame_ready = HAL_GetTick();
-        jpeg_total_ms += frame_ready - jpeg_started_ms;
-        video_handle.buffer = jpeg;
-        video_handle.size = jpeg_size;
-        video_handle.offset = 0U;
-        video_handle.ready = true;
-      }
-      return;
-    }
-
-    if (!video_handle.ready || video_handle.offset == video_handle.size) {
-      return;
-    }
-
-#if !CFG_TUD_VIDEO_STREAMING_BULK
-    uint32_t const now = tusb_time_millis_api();
-    if (now - last_frame_ms < interval_ms) {
-      return;
-    }
-#endif
-
-    if (tud_video_n_frame_xfer(0, 0, video_handle.buffer,
-      video_handle.size)) {
-      video_handle.offset = video_handle.size;
-#if !CFG_TUD_VIDEO_STREAMING_BULK
-      last_frame_ms = now;
-#endif
-    }
-  }
-
-  void tud_video_frame_xfer_complete_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx)
-  {
-    (void)ctl_idx;
-    (void)stm_idx;
-    video_handle = (struct video_handle_t){ 0 };
-    video_frames_completed++;
-    frame_total_ms += HAL_GetTick() - frame_started_ms;
-    profile_frames++;
-  }
-
-  int tud_video_commit_cb(uint_fast8_t ctl_idx, uint_fast8_t stm_idx,
-    video_probe_and_commit_control_t const* parameters)
-  {
-    (void)ctl_idx;
-    (void)stm_idx;
-
-    interval_ms = parameters->dwFrameInterval / 10000U;
-    if (interval_ms == 0U) {
-      interval_ms = 1U;
-    }
-
-    return VIDEO_ERROR_NONE;
-  }

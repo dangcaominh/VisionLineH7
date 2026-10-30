@@ -28,11 +28,13 @@ typedef struct
 }JPEG_DataTypeDef;
 
 int camera_init(void);
-int camera_capture();
+int camera_capture(void);
 uint8_t* camera_get_rgb565(void);
+uint32_t camera_get_capture_time_ms(void);
 int camera_convert_jpeg(uint8_t* ptr);
 uint8_t* camera_get_jpeg_buffer();
 uint32_t camera_get_jpeg_size();
+void camera_stop();
 
 
 #endif /* CAMERA_CAPTURE_H */

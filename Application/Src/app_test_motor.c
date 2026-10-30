@@ -54,76 +54,53 @@ static int test_motor_init()
 
 static void test_motor_run()
 {
-    enum
-    {
-        TEST_IDLE,
-        TEST_RUNNING,
-        TEST_DONE
-    };
+    static bool test_completed = false;
 
-    static uint8_t state = TEST_IDLE;
-    static uint32_t duty_percent = 0U;
-    static uint32_t sample = 0U;
-    static uint32_t last_sample_tick = 0U;
-    static uint16_t previous_left_count = 0U;
-    static uint16_t previous_right_count = 0U;
-    static uint32_t left_pulses = 0U;
-    static uint32_t right_pulses = 0U;
-    static bool dead_zone_crossed = false;
-
-    if (state == TEST_IDLE)
-    {
-        tb6612fng_set_direction(MOTOR_ALL, MOTOR_FORWARD);
-        tb6612fng_enable();
-
-        previous_left_count = encoder_get_count(ENCODER_LEFT);
-        previous_right_count = encoder_get_count(ENCODER_RIGHT);
-        left_pulses = 0U;
-        right_pulses = 0U;
-        dead_zone_crossed = false;
-        duty_percent = 0U;
-        sample = 0U;
-        last_sample_tick = HAL_GetTick();
-
-        printf("Motor test started, PWM ARR=%u\r\n", MOTOR_PWM_ARR);
-        state = TEST_RUNNING;
-    }
-
-    if (state != TEST_RUNNING)
+    if (test_completed)
     {
         return;
     }
 
-    if ((uint32_t)(HAL_GetTick() - last_sample_tick) < ENCODER_SAMPLE_MS)
+    tb6612fng_set_direction(MOTOR_ALL, MOTOR_FORWARD);
+    tb6612fng_enable();
+
+    uint16_t previous_left_count = encoder_get_count(ENCODER_LEFT);
+    uint16_t previous_right_count = encoder_get_count(ENCODER_RIGHT);
+    bool dead_zone_crossed = false;
+
+    printf("Motor test started, PWM ARR=%u\r\n", MOTOR_PWM_ARR);
+
+    for (uint32_t duty_percent = 0U; duty_percent <= MAX_DUTY_PERCENT; duty_percent += DUTY_STEP_PERCENT)
     {
-        return;
-    }
+        uint32_t duty = (duty_percent * MOTOR_PWM_ARR) / 100U;
+        uint32_t left_pulses = 0U;
+        uint32_t right_pulses = 0U;
 
-    last_sample_tick += ENCODER_SAMPLE_MS;
+        tb6612fng_set_speed(MOTOR_ALL, duty);
 
-    uint32_t duty = (duty_percent * MOTOR_PWM_ARR) / 100U;
-    tb6612fng_set_speed(MOTOR_ALL, duty);
+        for (uint32_t sample = 0U; sample < ENCODER_SAMPLES_PER_DUTY; sample++)
+        {
+            HAL_Delay(ENCODER_SAMPLE_MS);
 
-    uint16_t current_left_count = encoder_get_count(ENCODER_LEFT);
-    uint16_t current_right_count = encoder_get_count(ENCODER_RIGHT);
-    uint16_t left_delta = (uint16_t)(current_left_count - previous_left_count);
-    uint16_t right_delta = (uint16_t)(current_right_count - previous_right_count);
+            uint16_t current_left_count = encoder_get_count(ENCODER_LEFT);
+            uint16_t current_right_count = encoder_get_count(ENCODER_RIGHT);
+            uint16_t left_delta =
+                (uint16_t)(current_left_count - previous_left_count);
+            uint16_t right_delta =
+                (uint16_t)(current_right_count - previous_right_count);
 
-    previous_left_count = current_left_count;
-    previous_right_count = current_right_count;
-    left_pulses += left_delta;
-    right_pulses += right_delta;
+            previous_left_count = current_left_count;
+            previous_right_count = current_right_count;
+            left_pulses += left_delta;
+            right_pulses += right_delta;
 
-    printf("duty=%lu%%, t=%lums, left=%u, right=%u\r\n",
-           (unsigned long)duty_percent,
-           (unsigned long)((sample + 1U) * ENCODER_SAMPLE_MS),
-           left_delta,
-           right_delta);
+            printf("duty=%lu%%, t=%lums, left=%u, right=%u\r\n",
+                   (unsigned long)duty_percent,
+                   (unsigned long)((sample + 1U) * ENCODER_SAMPLE_MS),
+                   left_delta,
+                   right_delta);
+        }
 
-    sample++;
-
-    if (sample >= ENCODER_SAMPLES_PER_DUTY)
-    {
         if (!dead_zone_crossed && (left_pulses > 0U || right_pulses > 0U))
         {
             dead_zone_crossed = true;
@@ -135,20 +112,11 @@ static void test_motor_run()
                (unsigned long)duty_percent,
                (unsigned long)left_pulses,
                (unsigned long)right_pulses);
-
-        duty_percent += DUTY_STEP_PERCENT;
-        sample = 0U;
-        left_pulses = 0U;
-        right_pulses = 0U;
-
-        if (duty_percent > MAX_DUTY_PERCENT)
-        {
-            tb6612fng_stop();
-            state = TEST_DONE;
-            printf("Motor test completed\r\n");
-            return;
-        }
     }
+
+    tb6612fng_stop();
+    test_completed = true;
+    printf("Motor test completed\r\n");
 }
 
 static void test_motor_stop()

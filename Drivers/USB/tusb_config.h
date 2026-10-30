@@ -106,7 +106,7 @@
 
 #define CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE  512
 #define CFG_TUD_VIDEO_STREAMING_BULK 1
-#define USE_MJPEG                   1
+#define USE_MJPEG                   0
 
 #define CFG_TUD_CDC_NOTIFY        1 // Enable use of notification endpoint
 
