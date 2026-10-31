@@ -13,6 +13,7 @@
 
 #include "main.h"
 #include <stdint.h>
+#include <stdio.h>
 #include "encoder.h"
 
 extern TIM_HandleTypeDef htim3;
@@ -27,13 +28,15 @@ extern TIM_HandleTypeDef htim4;
  */
 HAL_StatusTypeDef encoder_init(encoder_t encoder)
 {
+    /* Board naming: connector A is logical left and uses ENC2 / TIM3. */
     if(encoder == ENCODER_LEFT)
     {
-        return HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+        return HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
     }
+    /* Board naming: connector B is logical right and uses ENC1 / TIM4. */
     else if(encoder == ENCODER_RIGHT)
     {
-        return HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+        return HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
     }
     else
     {
@@ -51,13 +54,15 @@ HAL_StatusTypeDef encoder_init(encoder_t encoder)
  */
 uint16_t encoder_get_count(encoder_t encoder)
 {
+    /* Board naming: connector A is logical left and uses ENC2 / TIM3. */
     if(encoder == ENCODER_LEFT)
     {
-        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
+        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
     }
+    /* Board naming: connector B is logical right and uses ENC1 / TIM4. */
     else if(encoder == ENCODER_RIGHT)
     {
-        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
+        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
     }
     else
     {

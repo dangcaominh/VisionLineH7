@@ -16,3 +16,4 @@ compile_commands.json
 # IDE and local tool files
 .vs/
 .vscode/*
+.settings/*
