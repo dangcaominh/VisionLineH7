@@ -67,15 +67,17 @@ int tb6612fng_set_direction(motor_id_t id, direction_t direction)
         return -1;
     }
 
+    /* Physical connector A is logical left and uses BIN. */
     if(id == MOTOR_LEFT || id == MOTOR_ALL)
-    {
-        HAL_GPIO_WritePin(AIN_1_GPIO_Port, AIN_1_Pin, in1);
-        HAL_GPIO_WritePin(AIN_2_GPIO_Port, AIN_2_Pin, in2);
-    }
-    if(id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
         HAL_GPIO_WritePin(BIN_1_GPIO_Port, BIN_1_Pin, in1);
         HAL_GPIO_WritePin(BIN_2_GPIO_Port, BIN_2_Pin, in2);
+    }
+    /* Physical connector B is logical right and uses AIN. */
+    if(id == MOTOR_RIGHT || id == MOTOR_ALL)
+    {
+        HAL_GPIO_WritePin(AIN_1_GPIO_Port, AIN_1_Pin, in1);
+        HAL_GPIO_WritePin(AIN_2_GPIO_Port, AIN_2_Pin, in2);
     }
 
     if(id != MOTOR_LEFT && id != MOTOR_RIGHT && id != MOTOR_ALL)
@@ -103,14 +105,16 @@ int tb6612fng_set_speed(motor_id_t id, uint32_t duty)
         duty = max_duty;
     }
 
+    /* Physical connector A (left) uses PWM_B / TIM1_CH1. */
     if(id == MOTOR_LEFT || id == MOTOR_ALL)
     {
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, duty);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, duty);
     }
 
+    /* Physical connector B (right) uses PWM_A / TIM1_CH4. */
     if(id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, duty);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, duty);
     }
 
     if(id != MOTOR_LEFT && id != MOTOR_RIGHT && id != MOTOR_ALL)
