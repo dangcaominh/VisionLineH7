@@ -13,11 +13,12 @@
 
 #include "main.h"
 #include <stdint.h>
-#include <stdio.h>
 #include "encoder.h"
 
 extern TIM_HandleTypeDef htim3;
 extern TIM_HandleTypeDef htim4;
+
+static uint16_t encoder_count[2] = {0, 0};
 
 /**
  * @brief Start encoder interface decoding for one motor encoder.
@@ -28,15 +29,13 @@ extern TIM_HandleTypeDef htim4;
  */
 HAL_StatusTypeDef encoder_init(encoder_t encoder)
 {
-    /* Board naming: connector A is logical left and uses ENC2 / TIM3. */
     if(encoder == ENCODER_LEFT)
     {
-        return HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+        return HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
     }
-    /* Board naming: connector B is logical right and uses ENC1 / TIM4. */
     else if(encoder == ENCODER_RIGHT)
     {
-        return HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+        return HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
     }
     else
     {
@@ -54,15 +53,13 @@ HAL_StatusTypeDef encoder_init(encoder_t encoder)
  */
 uint16_t encoder_get_count(encoder_t encoder)
 {
-    /* Board naming: connector A is logical left and uses ENC2 / TIM3. */
     if(encoder == ENCODER_LEFT)
     {
-        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
+        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
     }
-    /* Board naming: connector B is logical right and uses ENC1 / TIM4. */
     else if(encoder == ENCODER_RIGHT)
     {
-        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
+        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
     }
     else
     {
@@ -71,4 +68,39 @@ uint16_t encoder_get_count(encoder_t encoder)
         return HAL_ERROR;
     }
 }
+
+/**
+ * @brief Read the signed difference between two counter values of one motor encoder.
+ * @param encoder Encoder to read, either `ENCODER_LEFT` or `ENCODER_RIGHT`.
+ * @return The current 16-bit timer counter value, or `HAL_ERROR` if the
+ *         encoder ID is invalid.
+ */
+int32_t encoder_get_delta(encoder_t encoder)
+{
+    uint16_t current_count;
+
+    if (encoder == ENCODER_LEFT)
+    {
+        current_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
+    }
+    else if (encoder == ENCODER_RIGHT)
+    {
+        current_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
+    }
+    else
+    {
+        printf("Invalid encoder id\r\n");
+        return 0U;
+    }
+
+    uint16_t previous_count = encoder_count[encoder];
+    encoder_count[encoder] = current_count;
+
+    uint16_t diff = (uint16_t)(current_count - previous_count);
+
+    int32_t delta = (diff <= INT16_MAX) ? (int32_t)diff : (int32_t)diff - 65536;
+
+    return delta;
+}
  
+

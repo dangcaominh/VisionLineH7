@@ -27,7 +27,8 @@ typedef struct
   bool Done;
 }JPEG_DataTypeDef;
 
-int camera_init(void);
+int camera_init_rgb565(void);
+int camera_init_yuy2(void);
 int camera_capture(void);
 uint8_t* camera_get_rgb565(void);
 uint32_t camera_get_capture_time_ms(void);

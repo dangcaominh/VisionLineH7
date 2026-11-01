@@ -56,9 +56,18 @@ JPEG_HandleTypeDef hjpeg;
 MDMA_HandleTypeDef hmdma_jpeg_infifo_th;
 MDMA_HandleTypeDef hmdma_jpeg_outfifo_th;
 
+RAMECC_HandleTypeDef hramecc1_m1;
+RAMECC_HandleTypeDef hramecc1_m2;
+RAMECC_HandleTypeDef hramecc1_m3;
+RAMECC_HandleTypeDef hramecc1_m4;
+RAMECC_HandleTypeDef hramecc1_m5;
+
+RNG_HandleTypeDef hrng;
+
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim6;
 
 PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
@@ -80,6 +89,9 @@ static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_JPEG_Init(void);
 static void MX_USB_OTG_HS_PCD_Init(void);
+static void MX_RNG_Init(void);
+static void MX_TIM6_Init(void);
+static void MX_RAMECC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -182,7 +194,15 @@ int main(void)
   MX_TIM4_Init();
   MX_JPEG_Init();
   MX_USB_OTG_HS_PCD_Init();
+  MX_RNG_Init();
+  MX_TIM6_Init();
+  MX_RAMECC_Init();
   /* USER CODE BEGIN 2 */
+  if (HAL_TIM_Base_Start_IT(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
   tusb_rhport_init_t dev_init = {
     .role = TUSB_ROLE_DEVICE,
     .speed = TUSB_SPEED_HIGH
@@ -464,6 +484,94 @@ static void MX_JPEG_Init(void)
 }
 
 /**
+  * @brief RAMECC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RAMECC_Init(void)
+{
+
+  /* USER CODE BEGIN RAMECC_Init 0 */
+
+  /* USER CODE END RAMECC_Init 0 */
+
+  /* USER CODE BEGIN RAMECC_Init 1 */
+
+  /* USER CODE END RAMECC_Init 1 */
+
+  /** Initialize RAMECC1 M1 : AXI SRAM
+  */
+  hramecc1_m1.Instance = RAMECC1_Monitor1;
+  if (HAL_RAMECC_Init(&hramecc1_m1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initialize RAMECC1 M2 : ITCM-RAM
+  */
+  hramecc1_m2.Instance = RAMECC1_Monitor2;
+  if (HAL_RAMECC_Init(&hramecc1_m2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initialize RAMECC1 M3 : D0TCM-RAM
+  */
+  hramecc1_m3.Instance = RAMECC1_Monitor3;
+  if (HAL_RAMECC_Init(&hramecc1_m3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initialize RAMECC1 M4 : D1TCM-RAM
+  */
+  hramecc1_m4.Instance = RAMECC1_Monitor4;
+  if (HAL_RAMECC_Init(&hramecc1_m4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initialize RAMECC1 M5 : ETM RAM
+  */
+  hramecc1_m5.Instance = RAMECC1_Monitor5;
+  if (HAL_RAMECC_Init(&hramecc1_m5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RAMECC_Init 2 */
+
+  /* USER CODE END RAMECC_Init 2 */
+
+}
+
+/**
+  * @brief RNG Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RNG_Init(void)
+{
+
+  /* USER CODE BEGIN RNG_Init 0 */
+
+  /* USER CODE END RNG_Init 0 */
+
+  /* USER CODE BEGIN RNG_Init 1 */
+
+  /* USER CODE END RNG_Init 1 */
+  hrng.Instance = RNG;
+  hrng.Init.ClockErrorDetection = RNG_CED_ENABLE;
+  if (HAL_RNG_Init(&hrng) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RNG_Init 2 */
+
+  /* USER CODE END RNG_Init 2 */
+
+}
+
+/**
   * @brief TIM1 Initialization Function
   * @param None
   * @retval None
@@ -636,6 +744,44 @@ static void MX_TIM4_Init(void)
 }
 
 /**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 239;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 9999;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
   * @brief USB_OTG_HS Initialization Function
   * @param None
   * @retval None
@@ -731,11 +877,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, ULPI_RST_Pin|CAM_RESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, BIN_2_Pin|BIN_1_Pin|STBY_Pin|AIN_2_Pin
-                          |AIN_1_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, AIN_2_Pin|AIN_1_Pin|STBY_Pin|GPIO_PIN_14
+                          |BIN_1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PRG_MODE0_Pin PRG_MODE1_Pin PRG_MODE2_Pin */
-  GPIO_InitStruct.Pin = PRG_MODE0_Pin|PRG_MODE1_Pin|PRG_MODE2_Pin;
+  /*Configure GPIO pins : PRG_MODE0_Pin PC14 PRG_MODE2_Pin */
+  GPIO_InitStruct.Pin = PRG_MODE0_Pin|GPIO_PIN_14|PRG_MODE2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -760,10 +906,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BIN_2_Pin BIN_1_Pin STBY_Pin AIN_2_Pin
-                           AIN_1_Pin */
-  GPIO_InitStruct.Pin = BIN_2_Pin|BIN_1_Pin|STBY_Pin|AIN_2_Pin
-                          |AIN_1_Pin;
+  /*Configure GPIO pins : AIN_2_Pin AIN_1_Pin STBY_Pin PD14
+                           BIN_1_Pin */
+  GPIO_InitStruct.Pin = AIN_2_Pin|AIN_1_Pin|STBY_Pin|GPIO_PIN_14
+                          |BIN_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

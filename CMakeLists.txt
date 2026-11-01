@@ -80,6 +80,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     Drivers/TB6612FNG
     Drivers/Camera
     Drivers/USB
+    Drivers/CMSIS/DSP/Include
     tinyusb/src
     tinyusb/src/common
     tinyusb/src/portable/synopsys/dwc2
