@@ -89,6 +89,16 @@ void ov5640_rgb565_mode(void)
 	}
 }
 
+void ov5640_yuy2_mode(void)
+{
+	uint16_t i = 0;
+
+	for (i = 0; i < sizeof(ov5640_yuy2_init) / (2 * sizeof(ov5640_yuy2_init[0])); i++)
+	{
+		ov5640_wr_reg(ov5640_yuy2_init[i * 2], ov5640_yuy2_init[i * 2 + 1]);
+	}
+}
+
 void ov5640_exposure(uint8_t exposure)
 {
 	ov5640_wr_reg(0x3212, 0x03);	//start group 3

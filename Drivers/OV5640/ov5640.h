@@ -30,6 +30,7 @@ uint8_t ov5640_rd_reg(uint16_t reg);
 uint8_t ov5640_init(void);
 void ov5640_jpeg_mode(void);
 void ov5640_rgb565_mode(void);
+void ov5640_yuy2_mode(void);
 void ov5640_exposure(uint8_t exposure);
 void ov5640_light_mode(uint8_t mode);
 void ov5640_color_saturation(uint8_t sat);

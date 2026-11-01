@@ -89,8 +89,60 @@ const uint16_t ov5640_jpeg_init[] =
 	OV5640_AEC_PK_MANUAL, 0x00, // Enable automatic exposure and gain
 };
 
-
 const uint16_t ov5640_rgb565_init[]=
+{
+    OV5640_FORMAT_CTRL00, 0X6F,
+	OV5640_FORMAT_MUX_CTRL, 0x01,
+	// Configure the RGB565 output timing.
+	// Input clock: 24 MHz; pixel clock: 42 MHz.
+	OV5640_SC_PLL_CONTRL1, 0x21, // PLL
+	OV5640_SC_PLL_CONTRL2, 0x69, // PLL
+	OV5640_LIGHTMETER1_TH_LOW, 0x07, // Light-meter threshold
+	OV5640_TIMING_TC_REG20, 0x46, // Vertical flip
+	OV5640_TIMING_TC_REG21, 0x00, // Disable horizontal mirror
+	OV5640_TIMING_X_INC, 0x71, // Horizontal sampling
+	OV5640_TIMING_Y_INC, 0x35, // Vertical sampling
+	OV5640_TIMING_HS_HIGH, 0x00, // Crop start X high byte
+	OV5640_TIMING_HS_LOW, 0x00, // Crop start X low byte
+	OV5640_TIMING_VS_HIGH, 0x00, // Crop start Y high byte
+	OV5640_TIMING_VS_LOW, 0x00, // Crop start Y low byte
+	OV5640_TIMING_HW_HIGH, 0x0a, // Crop end X high byte
+	OV5640_TIMING_HW_LOW, 0x3f, // Crop end X low byte
+	OV5640_TIMING_VH_HIGH, 0x06, // Crop end Y high byte
+	OV5640_TIMING_VH_LOW, 0xa9, // Crop end Y low byte
+	OV5640_TIMING_DVPHO_HIGH, 0x05, // Output width high byte
+	OV5640_TIMING_DVPHO_LOW, 0x00, // Output width low byte
+	OV5640_TIMING_DVPVO_HIGH, 0x02, // Output height high byte
+	OV5640_TIMING_DVPVO_LOW, 0xd0, // Output height low byte
+	OV5640_TIMING_HTS_HIGH, 0x05, // Horizontal total high byte
+	OV5640_TIMING_HTS_LOW, 0x98, // Horizontal total low byte
+	OV5640_TIMING_VTS_HIGH, 0x01, // Vertical total high byte
+	OV5640_TIMING_VTS_LOW, 0xB4, // Vertical total low byte
+	OV5640_TIMING_VOFFSET_LOW, 0x04, // Vertical timing offset
+	OV5640_REG_3618, 0x00,
+	OV5640_REG_3612, 0x29,
+	OV5640_REG_3709, 0x52,
+	OV5640_REG_370C, 0x03,
+	OV5640_AEC_CTRL02, 0x02, // 60 Hz exposure high byte
+	OV5640_AEC_CTRL03, 0xe0, // 60 Hz exposure low byte
+
+	OV5640_AEC_MAX_EXPO_HIGH, 0x02, // 50 Hz exposure high byte
+	OV5640_AEC_MAX_EXPO_LOW, 0xe0, // 50 Hz exposure low byte
+	OV5640_BLC_CTRL04, 0x02, // Black-level correction lines
+	OV5640_SYSREM_RESET02, 0x1c, // Reset JPEG data paths
+	OV5640_CLOCK_ENABLE02, 0xc3, // Disable JPEG clocks
+	OV5640_JPG_MODE_SELECT, 0x03, // Select JPEG mode
+	OV5640_JPEG_CTRL07, 0x04, // JPEG quantization scale
+	OV5640_REG_460B, 0x37,
+	OV5640_VFIFO_CTRL0C, 0x20,
+	OV5640_PCLK_PERIOD, 0x16, // MIPI clock period
+	OV5640_REG_3824, 0x04, // Manual pixel-clock divider
+	OV5640_ISP_CONTROL01, 0xA3, // Enable SDE, scaling, CMX, and AWB
+	OV5640_AEC_PK_MANUAL, 0x00, // Enable automatic exposure and gain
+};
+
+
+const uint16_t ov5640_yuy2_init[]=
 {
     OV5640_FORMAT_CTRL00, 0X30,
 	OV5640_FORMAT_MUX_CTRL, 0x00,
