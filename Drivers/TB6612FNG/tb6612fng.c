@@ -115,12 +115,12 @@ int tb6612fng_set_speed(motor_id_t id, float32_t duty)
 
     if (id == MOTOR_LEFT || id == MOTOR_ALL)
     {
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, compare);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, compare);
     }
 
     if (id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, compare);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, compare);
     }
 
     return 0;

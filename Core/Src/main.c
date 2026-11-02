@@ -67,7 +67,7 @@ RNG_HandleTypeDef hrng;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
-TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 
 PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
@@ -90,8 +90,8 @@ static void MX_TIM4_Init(void);
 static void MX_JPEG_Init(void);
 static void MX_USB_OTG_HS_PCD_Init(void);
 static void MX_RNG_Init(void);
-static void MX_TIM6_Init(void);
 static void MX_RAMECC_Init(void);
+static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -195,13 +195,9 @@ int main(void)
   MX_JPEG_Init();
   MX_USB_OTG_HS_PCD_Init();
   MX_RNG_Init();
-  MX_TIM6_Init();
   MX_RAMECC_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
-  if (HAL_TIM_Base_Start_IT(&htim6) != HAL_OK)
-  {
-    Error_Handler();
-  }
 
   tusb_rhport_init_t dev_init = {
     .role = TUSB_ROLE_DEVICE,
@@ -744,40 +740,40 @@ static void MX_TIM4_Init(void)
 }
 
 /**
-  * @brief TIM6 Initialization Function
+  * @brief TIM7 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_TIM6_Init(void)
+static void MX_TIM7_Init(void)
 {
 
-  /* USER CODE BEGIN TIM6_Init 0 */
+  /* USER CODE BEGIN TIM7_Init 0 */
 
-  /* USER CODE END TIM6_Init 0 */
+  /* USER CODE END TIM7_Init 0 */
 
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
-  /* USER CODE BEGIN TIM6_Init 1 */
+  /* USER CODE BEGIN TIM7_Init 1 */
 
-  /* USER CODE END TIM6_Init 1 */
-  htim6.Instance = TIM6;
-  htim6.Init.Prescaler = 239;
-  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 9999;
-  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 239;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 9999;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
   {
     Error_Handler();
   }
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN TIM6_Init 2 */
+  /* USER CODE BEGIN TIM7_Init 2 */
 
-  /* USER CODE END TIM6_Init 2 */
+  /* USER CODE END TIM7_Init 2 */
 
 }
 
@@ -877,11 +873,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, ULPI_RST_Pin|CAM_RESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, AIN_2_Pin|AIN_1_Pin|STBY_Pin|GPIO_PIN_14
+  HAL_GPIO_WritePin(GPIOD, AIN_2_Pin|AIN_1_Pin|STBY_Pin|BIN_2_Pin
                           |BIN_1_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : PRG_MODE0_Pin PC14 PRG_MODE2_Pin */
-  GPIO_InitStruct.Pin = PRG_MODE0_Pin|GPIO_PIN_14|PRG_MODE2_Pin;
+  /*Configure GPIO pins : PRG_MODE0_Pin PRG_MODE1_Pin PRG_MODE2_Pin */
+  GPIO_InitStruct.Pin = PRG_MODE0_Pin|PRG_MODE1_Pin|PRG_MODE2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -906,9 +902,9 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : AIN_2_Pin AIN_1_Pin STBY_Pin PD14
+  /*Configure GPIO pins : AIN_2_Pin AIN_1_Pin STBY_Pin BIN_2_Pin
                            BIN_1_Pin */
-  GPIO_InitStruct.Pin = AIN_2_Pin|AIN_1_Pin|STBY_Pin|GPIO_PIN_14
+  GPIO_InitStruct.Pin = AIN_2_Pin|AIN_1_Pin|STBY_Pin|BIN_2_Pin
                           |BIN_1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;

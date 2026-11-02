@@ -21,14 +21,15 @@
 #include <stdio.h>
 #include <stdint.h>
 
+extern RNG_HandleTypeDef hrng;
 extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim7;
 
-/* Physical connector A is logical left: BIN/PWM_B and ENC2/TIM3. */
+
 #define TEST_MOTOR              MOTOR_LEFT
 #define TEST_ENCODER            ENCODER_LEFT
+#define DUTY_HOLD_SAMPLE        100U
 #define DUTY_STEP_PERCENT       10U
-#define DUTY_HOLD_MS            1000U
-#define ENCODER_SAMPLE_MS       10U
 #define MAX_DUTY_PERCENT        100U
 #define DUTY_LEVEL_COUNT        (MAX_DUTY_PERCENT / DUTY_STEP_PERCENT)
 
@@ -39,35 +40,40 @@ const struct sys_mode_api test_motor_api =
     .stop = test_motor_stop
 };
 
-static bool test_started = false;
-static bool test_completed = false;
-static uint32_t test_start_tick = 0U;
-static uint32_t previous_sample_tick = 0U;
-static uint32_t duty_start_tick = 0U;
-static uint32_t duty_percent = 0U;
-static uint32_t duty_sequence[DUTY_LEVEL_COUNT];
-static uint32_t duty_sequence_index = 0U;
-static uint32_t total_pulses = 0U;
-static uint16_t previous_encoder_count = 0U;
+volatile int sample = 0;
 
-static uint32_t next_random_value(uint32_t *state)
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
-    uint32_t value = *state;
-    value ^= value << 13;
-    value ^= value >> 17;
-    value ^= value << 5;
-    *state = value;
+    if (htim->Instance == TIM7)
+    {
+        print_encoder();
+        sample++;
+        if (sample == DUTY_HOLD_SAMPLE)
+        {
+            sample = 0;
+            update_pwm();
+        }
+    }
+}
+extern sys_run_mode_t run_mode;
+static uint32_t* duty_percent;
+static uint32_t duty_sequence[DUTY_LEVEL_COUNT];
+
+static uint32_t random_value()
+{
+    uint32_t value;
+
+    if (HAL_RNG_GenerateRandomNumber(&hrng, &value) != HAL_OK)
+    {
+        printf("Random failed\r\n");
+        Error_Handler();
+    }
+
     return value;
 }
 
 static void prepare_duty_sequence(void)
 {
-    uint32_t seed = HAL_GetTick() ^ ((uint32_t)encoder_get_count(TEST_ENCODER) << 16);
-    if (seed == 0U)
-    {
-        seed = 0x6D2B79F5U;
-    }
-
     for (uint32_t i = 0U; i < DUTY_LEVEL_COUNT; i++)
     {
         duty_sequence[i] = (i + 1U) * DUTY_STEP_PERCENT;
@@ -75,7 +81,7 @@ static void prepare_duty_sequence(void)
 
     for (uint32_t i = DUTY_LEVEL_COUNT - 1U; i > 0U; i--)
     {
-        uint32_t swap_index = next_random_value(&seed) % (i + 1U);
+        uint32_t swap_index = random_value() % (i + 1U);
         uint32_t value = duty_sequence[i];
         duty_sequence[i] = duty_sequence[swap_index];
         duty_sequence[swap_index] = value;
@@ -91,84 +97,53 @@ static int test_motor_init()
         printf("Encoder initialization failed\r\n");
         return -1;
     }
+    prepare_duty_sequence();
+    duty_percent = &duty_sequence[0];
 
-    test_started = false;
-    test_completed = false;
+    tb6612fng_set_direction(TEST_MOTOR, MOTOR_FORWARD);
+    tb6612fng_set_speed(TEST_MOTOR, (float)(*duty_percent));
+    tb6612fng_enable();
+    printf("DATA,duty_percent,delta\r\n");
     return 0;
 }
 
 static void test_motor_run()
 {
-    if (test_completed)
+    if (HAL_TIM_Base_GetState(&htim7) == HAL_TIM_STATE_BUSY)
     {
         return;
     }
 
-    uint32_t now = HAL_GetTick();
-    if (!test_started)
+    if (HAL_TIM_Base_Start_IT(&htim7) != HAL_OK)
     {
-        test_start_tick = now;
-        previous_sample_tick = now;
-        duty_start_tick = now;
-        duty_sequence_index = 0U;
-        prepare_duty_sequence();
-        duty_percent = duty_sequence[duty_sequence_index];
-        total_pulses = 0U;
-        previous_encoder_count = encoder_get_count(TEST_ENCODER);
-
-        tb6612fng_set_direction(TEST_MOTOR, MOTOR_FORWARD);
-        tb6612fng_enable();
-        uint32_t pwm_arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
-        uint32_t duty = (pwm_arr * duty_percent) / 100U;
-        tb6612fng_set_speed(TEST_MOTOR, duty);
-        test_started = true;
-        printf("DATA,time_ms,duty_percent,delta,total\r\n");
-        return;
-    }
-
-    if ((uint32_t)(now - previous_sample_tick) < ENCODER_SAMPLE_MS)
-    {
-        return;
-    }
-
-    previous_sample_tick = now;
-
-    uint16_t current_count = encoder_get_count(TEST_ENCODER);
-    uint16_t wrapped_delta = (uint16_t)(current_count - previous_encoder_count);
-    int32_t signed_delta = (wrapped_delta <= INT16_MAX)
-        ? (int32_t)wrapped_delta
-        : (int32_t)wrapped_delta - 65536;
-    uint32_t delta = (uint32_t)((signed_delta < 0) ? -signed_delta : signed_delta);
-    previous_encoder_count = current_count;
-    total_pulses += delta;
-
-    printf("DATA,%lu,%lu,%lu,%lu\r\n",
-           (unsigned long)(now - test_start_tick),
-           (unsigned long)duty_percent,
-           (unsigned long)delta,
-           (unsigned long)total_pulses);
-
-    if ((uint32_t)(now - duty_start_tick) >= DUTY_HOLD_MS)
-    {
-        if (duty_sequence_index + 1U >= DUTY_LEVEL_COUNT)
-        {
-            tb6612fng_stop();
-            test_completed = true;
-            return;
-        }
-
-        duty_sequence_index++;
-        duty_percent = duty_sequence[duty_sequence_index];
-        duty_start_tick = now;
-        uint32_t pwm_arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
-        uint32_t duty = (pwm_arr * duty_percent) / 100U;
-        tb6612fng_set_speed(TEST_MOTOR, duty);
+        Error_Handler();
     }
 }
+
 
 static void test_motor_stop()
 {
     tb6612fng_stop();
-    test_started = false;
-    test_completed = false;
+}
+
+void print_encoder()
+{
+    uint32_t delta = abs(encoder_get_delta(TEST_ENCODER));
+    printf("DATA,%lu,%lu\r\n", (unsigned long)(*duty_percent), (unsigned long)delta);
+}
+
+void update_pwm()
+{
+    if (duty_percent >= &duty_sequence[DUTY_LEVEL_COUNT - 1U])
+    {
+        HAL_TIM_Base_Stop_IT(&htim7);
+        tb6612fng_stop();
+        run_mode = SYS_MODE_STOPPED;
+        return;
+    }
+    duty_percent++;
+    tb6612fng_standby();
+    tb6612fng_set_direction(TEST_MOTOR, MOTOR_FORWARD);
+    tb6612fng_set_speed(TEST_MOTOR, (float)(*duty_percent));
+    tb6612fng_enable();
 }

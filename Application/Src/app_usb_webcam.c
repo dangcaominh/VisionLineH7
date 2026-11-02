@@ -32,7 +32,11 @@ const struct sys_mode_api usb_webcam_api =
 
 static int usb_webcam_init()
 {
-	camera_init();
+#if USE_MJPEG == 1
+	camera_init_rgb565();
+#else
+	camera_init_yuy2();
+#endif
 	return 0;
 }
 

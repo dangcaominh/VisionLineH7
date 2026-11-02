@@ -31,11 +31,11 @@ HAL_StatusTypeDef encoder_init(encoder_t encoder)
 {
     if(encoder == ENCODER_LEFT)
     {
-        return HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
+        return HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
     }
     else if(encoder == ENCODER_RIGHT)
     {
-        return HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
+        return HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
     }
     else
     {
@@ -55,11 +55,11 @@ uint16_t encoder_get_count(encoder_t encoder)
 {
     if(encoder == ENCODER_LEFT)
     {
-        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
+        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
     }
     else if(encoder == ENCODER_RIGHT)
     {
-        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
+        return (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
     }
     else
     {
@@ -81,11 +81,11 @@ int32_t encoder_get_delta(encoder_t encoder)
 
     if (encoder == ENCODER_LEFT)
     {
-        current_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
+        current_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
     }
     else if (encoder == ENCODER_RIGHT)
     {
-        current_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim3);
+        current_count = (uint16_t)__HAL_TIM_GET_COUNTER(&htim4);
     }
     else
     {

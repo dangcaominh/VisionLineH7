@@ -61,6 +61,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define PRG_MODE0_Pin GPIO_PIN_13
 #define PRG_MODE0_GPIO_Port GPIOC
+#define PRG_MODE1_Pin GPIO_PIN_14
+#define PRG_MODE1_GPIO_Port GPIOC
 #define PRG_MODE2_Pin GPIO_PIN_15
 #define PRG_MODE2_GPIO_Port GPIOC
 #define ADC1_Pin GPIO_PIN_1
@@ -71,8 +73,6 @@ void Error_Handler(void);
 #define ADC3_GPIO_Port GPIOA
 #define ADC4_Pin GPIO_PIN_2
 #define ADC4_GPIO_Port GPIOA
-#define ENC2_A_Pin GPIO_PIN_7
-#define ENC2_A_GPIO_Port GPIOA
 #define ADC5_Pin GPIO_PIN_5
 #define ADC5_GPIO_Port GPIOC
 #define LED1_Pin GPIO_PIN_11
@@ -98,16 +98,20 @@ void Error_Handler(void);
 #define ENC1_B_GPIO_Port GPIOD
 #define ENC1_A_Pin GPIO_PIN_13
 #define ENC1_A_GPIO_Port GPIOD
+#define BIN_2_Pin GPIO_PIN_14
+#define BIN_2_GPIO_Port GPIOD
 #define BIN_1_Pin GPIO_PIN_15
 #define BIN_1_GPIO_Port GPIOD
+#define ENC2_B_Pin GPIO_PIN_6
+#define ENC2_B_GPIO_Port GPIOC
+#define ENC2_A_Pin GPIO_PIN_7
+#define ENC2_A_GPIO_Port GPIOC
 #define XCLK_Pin GPIO_PIN_9
 #define XCLK_GPIO_Port GPIOC
 #define PWM_A_Pin GPIO_PIN_8
 #define PWM_A_GPIO_Port GPIOA
 #define CAM_RESET_Pin GPIO_PIN_3
 #define CAM_RESET_GPIO_Port GPIOB
-#define ENC2_B_Pin GPIO_PIN_4
-#define ENC2_B_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
