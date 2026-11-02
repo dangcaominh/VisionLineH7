@@ -46,7 +46,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == TIM7)
     {
-        print_encoder();
+        print_sample();
         sample++;
         if (sample == DUTY_HOLD_SAMPLE)
         {
@@ -92,18 +92,19 @@ static int test_motor_init()
 {
     tb6612fng_init();
 
-    if (encoder_init(TEST_ENCODER) != HAL_OK)
+    if (encoder_init(ENCODER_LEFT) != HAL_OK)
     {
-        printf("Encoder initialization failed\r\n");
+        printf("Encoder left initialization failed\r\n");
+        return -1;
+    }
+    if (encoder_init(ENCODER_RIGHT) != HAL_OK)
+    {
+        printf("Encoder right initialization failed\r\n");
         return -1;
     }
     prepare_duty_sequence();
     duty_percent = &duty_sequence[0];
-
-    tb6612fng_set_direction(TEST_MOTOR, MOTOR_FORWARD);
-    tb6612fng_set_speed(TEST_MOTOR, (float)(*duty_percent));
-    tb6612fng_enable();
-    printf("DATA,duty_percent,delta\r\n");
+    printf("DATA,duty_percent,delta_left, delta_right\r\n");
     return 0;
 }
 
@@ -113,6 +114,11 @@ static void test_motor_run()
     {
         return;
     }
+
+    tb6612fng_standby();
+    tb6612fng_set_direction(MOTOR_ALL, MOTOR_FORWARD);
+    tb6612fng_set_speed(MOTOR_ALL, (float)(*duty_percent));
+    tb6612fng_enable();
 
     if (HAL_TIM_Base_Start_IT(&htim7) != HAL_OK)
     {
@@ -126,10 +132,11 @@ static void test_motor_stop()
     tb6612fng_stop();
 }
 
-void print_encoder()
+void print_sample()
 {
-    uint32_t delta = abs(encoder_get_delta(TEST_ENCODER));
-    printf("DATA,%lu,%lu\r\n", (unsigned long)(*duty_percent), (unsigned long)delta);
+    uint32_t delta_left = abs(encoder_get_delta(ENCODER_LEFT));
+    uint32_t delta_right = abs(encoder_get_delta(ENCODER_RIGHT));
+    printf("DATA,%u,%u,%u\r\n", (*duty_percent), delta_left, delta_right);
 }
 
 void update_pwm()
@@ -143,7 +150,7 @@ void update_pwm()
     }
     duty_percent++;
     tb6612fng_standby();
-    tb6612fng_set_direction(TEST_MOTOR, MOTOR_FORWARD);
-    tb6612fng_set_speed(TEST_MOTOR, (float)(*duty_percent));
+    tb6612fng_set_direction(MOTOR_ALL, MOTOR_FORWARD);
+    tb6612fng_set_speed(MOTOR_ALL, (float)(*duty_percent));
     tb6612fng_enable();
 }

@@ -6,8 +6,10 @@ param(
 $ErrorActionPreference = "Stop"
 
 if ([string]::IsNullOrWhiteSpace($OutputFile)) {
-    $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $OutputFile = Join-Path ([Environment]::GetFolderPath("Desktop")) "motor-test-$timestamp.csv"
+    $OutputDir = Join-Path (Get-Location).Path "matlab"
+    New-Item -ItemType Directory -Path $OutputDir -Force | Out-Null
+
+    $OutputFile = Join-Path $OutputDir "motor-test.csv"
 }
 
 $serial = [System.IO.Ports.SerialPort]::new(
@@ -30,7 +32,7 @@ try {
         $false,
         [System.Text.UTF8Encoding]::new($false)
     )
-    $writer.WriteLine("time_ms,duty_percent,delta,total")
+    $writer.WriteLine("duty_percent,delta_left,delta_right")
     $writer.Flush()
     Write-Host "Reading $Port. CSV: $OutputFile"
     Write-Host "Start the motor test now. Stop the motor with the board button, then press Ctrl+C."
