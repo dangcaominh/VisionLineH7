@@ -16,7 +16,7 @@
 
 #define IMAGE_WIDTH       320U
 #define IMAGE_HEIGHT      240U
-#define RGB565_SIZE                (IMAGE_WIDTH * IMAGE_HEIGHT * 2U)
+#define IMAGE_SIZE                (IMAGE_WIDTH * IMAGE_HEIGHT * 2U)
 #define JPEG_SIZE                  (32 * 1024U)
 
 typedef struct
@@ -30,8 +30,7 @@ typedef struct
 int camera_init_rgb565(void);
 int camera_init_yuy2(void);
 int camera_capture(void);
-uint8_t* camera_get_rgb565(void);
-uint32_t camera_get_capture_time_ms(void);
+uint8_t* camera_get_image(void);
 int camera_convert_jpeg(uint8_t* ptr);
 uint8_t* camera_get_jpeg_buffer();
 uint32_t camera_get_jpeg_size();

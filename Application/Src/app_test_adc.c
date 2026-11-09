@@ -33,21 +33,19 @@ static uint16_t buf[5];
 
 static void test_adc_run()
 {
-    while(1)
-    {
-        HAL_StatusTypeDef status = line_sensor_read(buf);
-        if (status != HAL_OK)
-        { 
-            printf("Error while reading ADC\r\n");
-            return;
-        }
-        
-        for(int i = 0; i < 5; i++)
-        {
-            printf("ADC%d: %d ", i + 1, buf[i]);
-        }
-        printf("\r\n");
+    HAL_StatusTypeDef status = line_sensor_read(buf);
+    if (status != HAL_OK)
+    { 
+        printf("Error while reading ADC\r\n");
+        return;
     }
+    
+    for(int i = 0; i < 5; i++)
+    {
+        printf("ADC%d: %d ", i + 1, buf[i]);
+    }
+    printf("\r\n");
+    HAL_Delay(1000);
 }
 
 static void test_adc_stop()

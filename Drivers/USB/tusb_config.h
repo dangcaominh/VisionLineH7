@@ -57,6 +57,17 @@
 #define CFG_TUSB_RHPORT1_MODE  (OPT_MODE_DEVICE | OPT_MODE_HIGH_SPEED)
 #endif
 
+#ifndef CFG_TUD_DWC2_DMA_ENABLE
+#define CFG_TUD_DWC2_DMA_ENABLE 1
+#endif
+
+// Video uses endpoint 0x83. Double-buffer its high-speed bulk IN FIFO so
+// the DWC2 controller can queue the next 512-byte packet immediately.
+#ifndef CFG_TUD_CONFIGURE_DWC2_DEFAULT
+#define CFG_TUD_CONFIGURE_DWC2_DEFAULT \
+  { .bm_double_buffered = (1U << 3), .vbus_sensing = CFG_TUD_VBUS_DETECT_HW }
+#endif
+
 #ifndef CFG_TUSB_OS
 #define CFG_TUSB_OS           OPT_OS_NONE
 #endif
@@ -104,7 +115,7 @@
 
 #define CFG_TUD_VIDEO_STREAMING  1
 
-#define CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE  512
+#define CFG_TUD_VIDEO_STREAMING_EP_BUFSIZE  4096
 #define CFG_TUD_VIDEO_STREAMING_BULK 1
 #define USE_MJPEG                   0
 

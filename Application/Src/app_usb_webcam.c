@@ -42,28 +42,25 @@ static int usb_webcam_init()
 
 static void usb_webcam_run()
 {
-	static uint32_t last_transfer_count;
-
-	uint32_t const transfer_count = usb_video_get_transfer_count();
-	if (transfer_count != last_transfer_count)
-	{
-		printf("capture=%lu ms, usb=%lu ms\r\n",
-			(unsigned long)camera_get_capture_time_ms(),
-			(unsigned long)usb_video_get_transfer_time_ms());
-		last_transfer_count = transfer_count;
-	}
+	static bool capture_started;
 
 	if (usb_video_is_busy())
 	{
 		return;
 	}
-	camera_capture();
-
-	uint8_t* ptr = camera_get_rgb565();
-	while (ptr == NULL)
+	if (!capture_started)
 	{
-		tud_task();
-		ptr = camera_get_rgb565();
+		if (camera_capture() == 0)
+		{
+			capture_started = true;
+		}
+		return;
+	}
+
+	uint8_t* ptr = camera_get_image();
+	if (ptr == NULL)
+	{
+		return;
 	}
 #if USE_MJPEG == 1
 	if (camera_convert_jpeg(ptr) != 0)
@@ -84,7 +81,7 @@ static void usb_webcam_run()
 	usb_set_buffer(jpeg_ptr, size);
 	usb_send_frame();
 #else
-	usb_set_buffer(ptr, RGB565_SIZE);
+	usb_set_buffer(ptr, IMAGE_SIZE);
 	usb_send_frame();
 #endif
 }
