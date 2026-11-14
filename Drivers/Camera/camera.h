@@ -14,6 +14,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <stdbool.h>
+
 #define IMAGE_WIDTH       320U
 #define IMAGE_HEIGHT      240U
 #define IMAGE_SIZE                (IMAGE_WIDTH * IMAGE_HEIGHT * 2U)

@@ -66,8 +66,12 @@ static void camera_dma_complete(DMA_HandleTypeDef* hdma)
 
 static void camera_dma_error(DMA_HandleTypeDef* hdma)
 {
-	UNUSED(hdma);
-	image_done = false;
+	if ((hdma->ErrorCode & (HAL_DMA_ERROR_TE | HAL_DMA_ERROR_DME)) != 0U)
+	{
+		image_done = false;
+	}
+
+	hdma->ErrorCode = HAL_DMA_ERROR_NONE;
 }
 
 

@@ -25,5 +25,5 @@ typedef enum
 
 HAL_StatusTypeDef encoder_init(encoder_t encoder);
 uint16_t encoder_get_count(encoder_t encoder);
- 
+int32_t encoder_get_delta(encoder_t encoder);
 #endif /* ENCODER_H */

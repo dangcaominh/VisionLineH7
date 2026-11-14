@@ -17,5 +17,7 @@
 static int test_motor_init();
 static void test_motor_run();
 static void test_motor_stop();
+void update_pwm();
+void print_sample();
 
 #endif /* APP_TEST_MOTOR_H_ */

@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 extern RNG_HandleTypeDef hrng;
 extern TIM_HandleTypeDef htim1;
@@ -134,9 +135,9 @@ static void test_motor_stop()
 
 void print_sample()
 {
-    uint32_t delta_left = abs(encoder_get_delta(ENCODER_LEFT));
-    uint32_t delta_right = abs(encoder_get_delta(ENCODER_RIGHT));
-    printf("DATA,%u,%u,%u\r\n", (*duty_percent), delta_left, delta_right);
+    uint32_t delta_left = abs((int)encoder_get_delta(ENCODER_LEFT));
+    uint32_t delta_right = abs((int)encoder_get_delta(ENCODER_RIGHT));
+    printf("DATA,%lu,%lu,%lu\r\n", (*duty_percent), delta_left, delta_right);
 }
 
 void update_pwm()

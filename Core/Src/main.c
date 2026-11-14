@@ -71,6 +71,7 @@ TIM_HandleTypeDef htim7;
 
 PCD_HandleTypeDef hpcd_USB_OTG_HS;
 
+DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -815,12 +816,33 @@ static void MX_USB_OTG_HS_PCD_Init(void)
 
 /**
   * Enable DMA controller clock
+  * Configure DMA for memory to memory transfers
+  *   hdma_memtomem_dma1_stream1
   */
 static void MX_DMA_Init(void)
 {
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* Configure DMA request hdma_memtomem_dma1_stream1 on DMA1_Stream1 */
+  hdma_memtomem_dma1_stream1.Instance = DMA1_Stream1;
+  hdma_memtomem_dma1_stream1.Init.Request = DMA_REQUEST_MEM2MEM;
+  hdma_memtomem_dma1_stream1.Init.Direction = DMA_MEMORY_TO_MEMORY;
+  hdma_memtomem_dma1_stream1.Init.PeriphInc = DMA_PINC_ENABLE;
+  hdma_memtomem_dma1_stream1.Init.MemInc = DMA_MINC_ENABLE;
+  hdma_memtomem_dma1_stream1.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+  hdma_memtomem_dma1_stream1.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+  hdma_memtomem_dma1_stream1.Init.Mode = DMA_NORMAL;
+  hdma_memtomem_dma1_stream1.Init.Priority = DMA_PRIORITY_HIGH;
+  hdma_memtomem_dma1_stream1.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+  hdma_memtomem_dma1_stream1.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+  hdma_memtomem_dma1_stream1.Init.MemBurst = DMA_MBURST_INC4;
+  hdma_memtomem_dma1_stream1.Init.PeriphBurst = DMA_PBURST_INC4;
+  if (HAL_DMA_Init(&hdma_memtomem_dma1_stream1) != HAL_OK)
+  {
+    Error_Handler( );
+  }
 
   /* DMA interrupt init */
   /* DMA1_Stream0_IRQn interrupt configuration */

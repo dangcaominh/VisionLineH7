@@ -19,7 +19,7 @@ file(GLOB_RECURSE TB6612FNG_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drive
 file(GLOB_RECURSE Camera_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/Camera/*.c")
 file(GLOB_RECURSE USB_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/USB/*.c")
 file(GLOB_RECURSE APPLICATION_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Src/*.c")
-
+file(GLOB_RECURSE IMAGE_PROCESSING_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Modules/ImageProcessing/*.c")
 
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -62,6 +62,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${Camera_SOURCES}
     ${USB_SOURCES}
     ${APPLICATION_SOURCES}
+    ${IMAGE_PROCESSING_SOURCES}
     tinyusb/src/class/cdc/cdc_device.c
     tinyusb/src/class/video/video_device.c
     tinyusb/src/tusb.c
@@ -85,6 +86,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     tinyusb/src/common
     tinyusb/src/portable/synopsys/dwc2
     Application/Inc
+    Application/Modules/ImageProcessing
 )
 
 # Add project symbols (macros)
