@@ -126,23 +126,12 @@ int camera_init_yuy2(void)
 
 	ov5640_light_mode(0);
 	ov5640_color_saturation(3);
-	ov5640_brightness(4);
+	ov5640_brightness(8);
 	ov5640_contrast(3);
 	ov5640_sharpness(33);
 	ov5640_yuy2_mode();
 	ov5640_out_size_set(0, 0, 320, 240);
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
-
-	JPEG_InitColorTables();
-	HAL_JPEG_Init(&hjpeg);
-
-	uint32_t mcu = 0;
-
-	if (JPEG_GetEncodeColorConvertFunc(&jpeg_config, &convert_function, &mcu) != HAL_OK)
-	{
-		printf("Failed to get color conversion function\r\n");
-		return -1;
-    }
 
 	return 0;
 }

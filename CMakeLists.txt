@@ -20,6 +20,7 @@ file(GLOB_RECURSE Camera_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/
 file(GLOB_RECURSE USB_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Drivers/USB/*.c")
 file(GLOB_RECURSE APPLICATION_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Src/*.c")
 file(GLOB_RECURSE IMAGE_PROCESSING_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Modules/ImageProcessing/*.c")
+file(GLOB_RECURSE KALMAN_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Modules/Kalman/*.c")
 
 # Define the build type
 if(NOT CMAKE_BUILD_TYPE)
@@ -63,6 +64,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${USB_SOURCES}
     ${APPLICATION_SOURCES}
     ${IMAGE_PROCESSING_SOURCES}
+    ${KALMAN_SOURCES}
+    Drivers/CMSIS/DSP/Source/MatrixFunctions/arm_mat_mult_f32.c
     tinyusb/src/class/cdc/cdc_device.c
     tinyusb/src/class/video/video_device.c
     tinyusb/src/tusb.c
@@ -87,6 +90,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     tinyusb/src/portable/synopsys/dwc2
     Application/Inc
     Application/Modules/ImageProcessing
+    Application/Modules/Kalman
 )
 
 # Add project symbols (macros)

@@ -74,3 +74,5 @@ void detect_line(uint8_t *gray)
         }
     }
 }
+
+
