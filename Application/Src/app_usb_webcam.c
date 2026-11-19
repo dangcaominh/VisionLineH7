@@ -29,7 +29,6 @@ const struct sys_mode_api usb_webcam_api =
 };
 
 
-
 static int usb_webcam_init()
 {
 #if USE_MJPEG == 1
@@ -42,20 +41,11 @@ static int usb_webcam_init()
 
 static void usb_webcam_run()
 {
-	static bool capture_started;
-
 	if (usb_video_is_busy())
 	{
 		return;
 	}
-	if (!capture_started)
-	{
-		if (camera_capture() == 0)
-		{
-			capture_started = true;
-		}
-		return;
-	}
+	camera_capture();
 
 	uint8_t* ptr = camera_get_image();
 	if (ptr == NULL)

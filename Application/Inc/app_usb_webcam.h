@@ -18,9 +18,9 @@
 #include <stdint.h>
 
 
-static int usb_webcam_init(void);
-static void usb_webcam_run(void);
-static void usb_webcam_stop(void);
+static int usb_webcam_init();
+static void usb_webcam_run();
+static void usb_webcam_stop();
 
 
 #endif /* APP_USB_WEBCAM_H */

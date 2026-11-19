@@ -62,3 +62,14 @@ HAL_StatusTypeDef line_sensor_read(uint16_t *buffer)
 
     return HAL_BUSY;
 }
+
+/**
+ * @brief Stop the line-sensor ADC DMA transfer.
+ * @return HAL status returned by `HAL_ADC_Stop_DMA`.
+ */
+HAL_StatusTypeDef line_sensor_stop(void)
+{
+    return HAL_ADC_Stop_DMA(&hadc1);
+}
+
+

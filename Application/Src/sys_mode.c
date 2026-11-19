@@ -14,6 +14,7 @@
 
 #include "sys_mode.h"
 #include "main.h"
+#include "boot_mode.h"
 #include <stdio.h>
 #include <stddef.h>
 
@@ -51,6 +52,34 @@ static const sys_mode_handle sys_mode_table[SYS_MODE_COUNT] = {
  */
 sys_mode_t sys_mode_init(void)
 {
+    uint32_t boot_mode;
+
+    if (boot_mode_read(&boot_mode))
+    {
+        boot_mode_clear();
+
+        if (boot_mode < SYS_MODE_COUNT)
+        {
+            const sys_mode_handle* handle = &sys_mode_table[boot_mode];
+            const struct sys_mode_api* api = handle->api;
+
+            if (api && api->init)
+            {
+                if (api->init() != 0)
+                {
+                    return ERR_INVAL;
+                }
+            }
+            else
+            {
+                printf("Invalid api struct or api init pointer\r\n");
+                return ERR_INVAL;
+            }
+
+            return (sys_mode_t)boot_mode;
+        }
+    }
+
     uint8_t bit0 = (HAL_GPIO_ReadPin(PRG_MODE0_GPIO_Port, PRG_MODE0_Pin) == GPIO_PIN_SET) ? 1 : 0;
     uint8_t bit1 = (HAL_GPIO_ReadPin(PRG_MODE1_GPIO_Port, PRG_MODE1_Pin) == GPIO_PIN_SET) ? 1 : 0;
     uint8_t bit2 = (HAL_GPIO_ReadPin(PRG_MODE2_GPIO_Port, PRG_MODE2_Pin) == GPIO_PIN_SET) ? 1 : 0;

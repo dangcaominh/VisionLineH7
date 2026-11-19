@@ -16,16 +16,13 @@
 #include "app_line_camera.h"
 #include "camera.h"
 #include "usb_video.h"
+#include "image_processing.h"
+#include <stdbool.h>
 
 #define PIXELS (IMAGE_WIDTH * IMAGE_HEIGHT)
 extern uint8_t gray[PIXELS];
 extern uint8_t ycbcr_buffer[IMAGE_SIZE];
 extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
-
-void YUY2_To_Grayscale(const uint8_t* src, uint8_t* dst);
-void Grayscale_To_YUY2(const uint8_t *gray, uint8_t *out);
-void Grayscale_To_Binary(uint8_t *gray, uint8_t threshold);
-void Detect_Line(uint8_t *gray);
 
 const struct sys_mode_api line_camera_api =
 {
@@ -34,6 +31,7 @@ const struct sys_mode_api line_camera_api =
     .stop = line_camera_stop
 };
 
+
 static int line_camera_init()
 {
     return camera_init_yuy2();
@@ -41,21 +39,11 @@ static int line_camera_init()
 
 static void line_camera_run()
 {
-    static bool capture_started;
-
 	if (usb_video_is_busy())
 	{
 		return;
 	}
-	if (!capture_started)
-	{
-		if (camera_capture() == 0)
-		{
-			capture_started = true;
-		}
-		return;
-    }
-
+    camera_capture();
 	uint8_t* ptr = camera_get_image();
 	if (ptr == NULL)
 	{

@@ -52,7 +52,9 @@ JPEG_ConfTypeDef jpeg_config = {
 
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef* hdcmi)
 {
-	UNUSED(hdcmi);
+	/* Restart a new single-frame snapshot for the next frame event. */
+	hdcmi->Instance->CR |= DCMI_CR_CAPTURE;
+	__HAL_DCMI_ENABLE_IT(hdcmi, DCMI_IT_FRAME | DCMI_IT_ERR | DCMI_IT_OVR);
 }
 
 static void camera_dma_complete(DMA_HandleTypeDef* hdma)
@@ -64,14 +66,22 @@ static void camera_dma_complete(DMA_HandleTypeDef* hdma)
 	image_done = true;
 }
 
+static int camera_restart_capture(void);
+
 static void camera_dma_error(DMA_HandleTypeDef* hdma)
 {
 	if ((hdma->ErrorCode & (HAL_DMA_ERROR_TE | HAL_DMA_ERROR_DME)) != 0U)
 	{
-		image_done = false;
+		hdcmi.State = HAL_DCMI_STATE_READY;
+		camera_capture();
 	}
-
 	hdma->ErrorCode = HAL_DMA_ERROR_NONE;
+}
+
+void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
+{
+	hdcmi->State = HAL_DCMI_STATE_READY;
+	camera_capture();
 }
 
 
@@ -93,6 +103,7 @@ int camera_init_rgb565(void)
 	ov5640_brightness(4);
 	ov5640_contrast(3);
 	ov5640_sharpness(33);
+	ov5640_exposure(0);
 	ov5640_rgb565_mode();
 	ov5640_out_size_set(0, 0, 320, 240);
 	HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
@@ -147,6 +158,14 @@ int camera_capture(void)
 	image_done = false;
 	rgb_ready_mask = 0U;
 	rgb_read_index = 0U;
+
+	__HAL_DCMI_DISABLE_IT(&hdcmi,
+		DCMI_IT_FRAME | DCMI_IT_LINE | DCMI_IT_VSYNC |
+		DCMI_IT_ERR | DCMI_IT_OVR);
+	hdcmi.Instance->CR &= ~(DCMI_CR_CAPTURE);
+
+	(void)HAL_DMA_Abort(&hdma_dcmi);
+
 	SCB_InvalidateDCache_by_Addr((uint32_t*)image_buffers[0], IMAGE_SIZE);
 	SCB_InvalidateDCache_by_Addr((uint32_t*)image_buffers[1], IMAGE_SIZE);
 
@@ -155,12 +174,10 @@ int camera_capture(void)
 	hdma_dcmi.XferErrorCallback = camera_dma_error;
 	hdcmi.State = HAL_DCMI_STATE_BUSY;
 
-	// Enable DCMI
+	/* Enable DCMI and configure single-frame snapshot mode. */
 	__HAL_DCMI_ENABLE(&hdcmi);
-	// Disable DCMI_MODE_SNAPSHOT
-	hdcmi.Instance->CR &= ~DCMI_CR_CM;
-	// Enable DCMI_MODE_CONTINOUS
-	hdcmi.Instance->CR |= DCMI_MODE_CONTINUOUS;
+	hdcmi.Instance->CR &= ~DCMI_MODE_CONTINUOUS;
+	hdcmi.Instance->CR |= DCMI_MODE_SNAPSHOT;
 
 	// Start DCMI double-buffer DMA
 	if (HAL_DMAEx_MultiBufferStart_IT(
@@ -174,6 +191,9 @@ int camera_capture(void)
 		printf("Cannot start DCMI double-buffer DMA\r\n");
 		return -1;
 	}
+
+	__HAL_DCMI_ENABLE_IT(&hdcmi,
+		DCMI_IT_FRAME | DCMI_IT_ERR | DCMI_IT_OVR);
 
 	// Start capture
 	hdcmi.Instance->CR |= DCMI_CR_CAPTURE;
@@ -262,6 +282,7 @@ void camera_stop()
 {
 	HAL_DMA_Abort(&hdma_dcmi);
 	HAL_DCMI_Stop(&hdcmi);
+	hdcmi.State = HAL_DCMI_STATE_READY;
 	image_done = false;
 	rgb_ready_mask = 0U;
 }

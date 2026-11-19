@@ -19,6 +19,7 @@
 #define SENSOR_NUM  5
 
 HAL_StatusTypeDef line_sensor_init(void);
-HAL_StatusTypeDef line_sensor_read(uint16_t *buffer);
- 
+HAL_StatusTypeDef line_sensor_read(uint16_t* buffer);
+HAL_StatusTypeDef line_sensor_stop(void);
+
 #endif /* ITR20001_H */

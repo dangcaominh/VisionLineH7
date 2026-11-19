@@ -21,6 +21,7 @@
 #include "usb_device.h"
 #include "usbd_core.h"
 #include "usbd_conf.h"
+#include <stdbool.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -38,6 +39,8 @@
 #define APP_FLASH_END      0x08200000U
 #define SRAM_START_ADDRESS 0x20000000U
 #define SRAM_END_ADDRESS   0x20020000U
+#define BOOT_MODE_MAGIC    0x564C4D31U
+#define BOOT_MODE_DFU      7U
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -100,6 +103,26 @@ static void Bootloader_JumpToApplication(void)
   }
 }
 
+static bool Bootloader_ReadRequestedMode(uint32_t *mode)
+{
+  __HAL_RCC_RTC_ENABLE();
+  HAL_PWR_EnableBkUpAccess();
+
+  if (RTC->BKP0R != BOOT_MODE_MAGIC)
+  {
+    return false;
+  }
+
+  *mode = RTC->BKP1R;
+  return (*mode <= BOOT_MODE_DFU);
+}
+
+static void Bootloader_ClearRequestedMode(void)
+{
+  RTC->BKP0R = 0U;
+  RTC->BKP1R = 0U;
+}
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -154,15 +177,34 @@ int main(void)
    * @param 0x7: Cổng USB Highspeed được dùng làm DFU
    * @param
 	 */
-	uint8_t mode = (HAL_GPIO_ReadPin(PRG_MODE0_GPIO_Port, PRG_MODE0_Pin) << 0) |
-		(HAL_GPIO_ReadPin(PRG_MODE1_GPIO_Port, PRG_MODE1_Pin) << 1) |
-    (HAL_GPIO_ReadPin(PRG_MODE2_GPIO_Port, PRG_MODE2_Pin) << 2);
+  uint32_t mode;
 
-  if (mode != 7)
+  if (Bootloader_ReadRequestedMode(&mode))
   {
-    Bootloader_JumpToApplication();
+    Bootloader_ClearRequestedMode();
+
+    if (mode == BOOT_MODE_DFU)
+    {
+      MX_USB_DEVICE_Init();
+    }
+    else
+    {
+      Bootloader_JumpToApplication();
+    }
   }
-   MX_USB_DEVICE_Init();
+  else
+  {
+    mode = (HAL_GPIO_ReadPin(PRG_MODE0_GPIO_Port, PRG_MODE0_Pin) << 0) |
+           (HAL_GPIO_ReadPin(PRG_MODE1_GPIO_Port, PRG_MODE1_Pin) << 1) |
+           (HAL_GPIO_ReadPin(PRG_MODE2_GPIO_Port, PRG_MODE2_Pin) << 2);
+
+    if (mode != BOOT_MODE_DFU)
+    {
+      Bootloader_JumpToApplication();
+    }
+
+    MX_USB_DEVICE_Init();
+  }
   HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
   HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);

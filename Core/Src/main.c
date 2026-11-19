@@ -24,8 +24,9 @@
 #include "ov5640.h"
 #include "tusb.h"
 #include "sys_mode.h"
-#include "app_usb_webcam.h"
 #include "usb_descriptor.h"
+#include "boot_mode.h"
+#include <string.h>
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -46,6 +47,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 DCMI_HandleTypeDef hdcmi;
 DMA_HandleTypeDef hdma_dcmi;
@@ -101,13 +103,89 @@ static void MX_TIM7_Init(void);
 /* USER CODE BEGIN 0 */
 
 sys_run_mode_t run_mode = SYS_MODE_IDLE;
+static char cdc_command[32];
+static uint8_t cdc_command_length;
+
+static void cdc_print_help(void)
+{
+  const char *help =
+    "Commands:\r\n"
+    "  MODE <0-7>\r\n"
+    "  RESET\r\n"
+    "  DFU\r\n"
+    "  CLEAR\r\n";
+  tud_cdc_n_write(0, help, (uint32_t) strlen(help));
+  tud_cdc_n_write_flush(0);
+}
+
+static void cdc_process_command(const char *command)
+{
+  uint32_t mode;
+
+  if (sscanf(command, "MODE %lu", &mode) == 1 && mode <= 7U)
+  {
+    boot_mode_write(mode);
+    tud_cdc_n_write_str(0, "Boot mode saved. Resetting.\r\n");
+    tud_cdc_n_write_flush(0);
+    HAL_Delay(50);
+    NVIC_SystemReset();
+  }
+  else if (strcmp(command, "DFU") == 0)
+  {
+    boot_mode_write(BOOT_MODE_DFU);
+    tud_cdc_n_write_str(0, "Entering DFU. Resetting.\r\n");
+    tud_cdc_n_write_flush(0);
+    HAL_Delay(50);
+    NVIC_SystemReset();
+  }
+  else if (strcmp(command, "RESET") == 0)
+  {
+    tud_cdc_n_write_str(0, "Resetting.\r\n");
+    tud_cdc_n_write_flush(0);
+    HAL_Delay(50);
+    NVIC_SystemReset();
+  }
+  else if (strcmp(command, "CLEAR") == 0)
+  {
+    boot_mode_clear();
+    tud_cdc_n_write_str(0, "Boot mode cleared.\r\n");
+    tud_cdc_n_write_flush(0);
+  }
+  else
+  {
+    tud_cdc_n_write_str(0, "Unknown command.\r\n");
+    cdc_print_help();
+  }
+}
+
+void tud_cdc_rx_cb(uint8_t itf)
+{
+  while (tud_cdc_n_available(itf))
+  {
+    char ch = (char) tud_cdc_n_read_char(itf);
+
+    if (ch == '\r' || ch == '\n')
+    {
+      if (cdc_command_length > 0U)
+      {
+        cdc_command[cdc_command_length] = '\0';
+        cdc_process_command(cdc_command);
+        cdc_command_length = 0U;
+      }
+    }
+    else if (cdc_command_length < (sizeof(cdc_command) - 1U))
+    {
+      cdc_command[cdc_command_length++] = ch;
+    }
+  }
+}
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     static uint32_t last_tick = 0;
     uint32_t now = HAL_GetTick();
 
-    if (GPIO_Pin == USER_BUTTON_Pin && (uint32_t)(now - last_tick) >= 30U)
+    if (GPIO_Pin == USER_BUTTON_Pin && (uint32_t)(now - last_tick) >= 500U)
     {
       last_tick = now;
       if (run_mode != SYS_MODE_STOPPED)
@@ -211,8 +289,14 @@ int main(void)
   }
 
   sys_mode_t current_mode = sys_mode_init();
-  
-  sys_mode_stop(current_mode);
+  if (current_mode == SYS_MODE_USB_WEBCAM)
+  {
+    run_mode = SYS_MODE_RUNNING;
+  }
+  else
+  {
+    sys_mode_stop(current_mode);
+  }
   
   /* USER CODE END 2 */
 
@@ -324,15 +408,15 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution = ADC_RESOLUTION_16B;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 5;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DR;
+  hadc1.Init.ConversionDataManagement = ADC_CONVERSIONDATA_DMA_ONESHOT;
   hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc1.Init.LeftBitShift = ADC_LEFTBITSHIFT_NONE;
   hadc1.Init.OversamplingMode = DISABLE;
@@ -359,6 +443,42 @@ static void MX_ADC1_Init(void)
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
   sConfig.OffsetSignedSaturation = DISABLE;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_16;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_17;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_14;
+  sConfig.Rank = ADC_REGULAR_RANK_4;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_8;
+  sConfig.Rank = ADC_REGULAR_RANK_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -848,6 +968,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+  /* DMA1_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
 
 }
 

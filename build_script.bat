@@ -22,6 +22,8 @@ if /I "%~1"=="release" goto :command_release
 if /I "%~1"=="minsize" goto :command_minsize
 if /I "%~1"=="reset" goto :command_reset
 if /I "%~1"=="clean" goto :command_clean
+if /I "%~1"=="mode" goto :command_mode
+if /I "%~1"=="dfu" goto :command_dfu_mode
 
 echo Unknown command: %~1
 echo.
@@ -75,6 +77,18 @@ exit /b %errorlevel%
 call :clean
 exit /b %errorlevel%
 
+:command_mode
+if "%~2"=="" (
+    echo Usage: %~nx0 mode ^<0-7^> [COMport]
+    exit /b 2
+)
+call :send_cdc "MODE %~2" "%~3"
+exit /b %errorlevel%
+
+:command_dfu_mode
+call :send_cdc "DFU" "%~2"
+exit /b %errorlevel%
+
 :help
 echo Usage: %~nx0 ^<command^>
 echo.
@@ -86,6 +100,9 @@ echo   release [upload^|dfu] Build Release, optionally flash/update it
 echo   minsize [upload^|dfu] Build MinSizeRel, optionally flash/update it
 echo   reset             Reset MCU through ST-Link
 echo   clean    Remove the build directory
+echo   mode ^<0-7^> [COMport]
+echo                    Change boot mode through USB CDC ACM
+echo   dfu [COMport]     Enter DFU mode through USB CDC ACM
 echo   help     Show this help
 echo.
 echo Examples:
@@ -97,6 +114,8 @@ echo   %~nx0 debug dfu
 echo   %~nx0 release upload
 echo   %~nx0 release dfu
 echo   %~nx0 reset
+echo   %~nx0 mode 7
+echo   %~nx0 dfu
 exit /b 0
 
 :run_preset
@@ -117,6 +136,33 @@ exit /b %errorlevel%
 :run_build
 call :build "%PRESET%"
 exit /b %errorlevel%
+
+:send_cdc
+set "CDC_COMMAND=%~1"
+set "CDC_PORT=%~2"
+
+if "%CDC_PORT%"=="" (
+    echo.
+    echo [CDC] Available serial ports:
+    for /f "tokens=1 delims= " %%P in ('wmic path Win32_SerialPort get DeviceID ^| findstr /R "COM[0-9][0-9]*"') do echo %%P
+    echo.
+    set /p "CDC_PORT=Enter COM port (for example COM3): "
+)
+
+if "%CDC_PORT%"=="" (
+    echo CDC COM port is required.
+    exit /b 2
+)
+
+echo.
+echo [CDC] Sending "%CDC_COMMAND%" to %CDC_PORT%
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$p=New-Object System.IO.Ports.SerialPort('%CDC_PORT%',115200,'None',8,'One'); try { $p.Open(); $p.Write('%CDC_COMMAND%' + \"`r`n\"); Start-Sleep -Milliseconds 300 } finally { if ($p.IsOpen) { $p.Close() } }"
+if errorlevel 1 (
+    echo CDC command failed.
+    exit /b 1
+)
+echo CDC command sent.
+exit /b 0
 
 :invalid_run_preset
 echo Usage: %~nx0 %~1 ^[upload^|dfu^]
