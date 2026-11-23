@@ -16,6 +16,10 @@
 #include "app_test_adc.h"
 #include "itr20001.h"
 
+static uint16_t sensor_min[SENSOR_NUM] = {3092, 22416, 25172, 22995, 25986};
+static uint16_t sensor_max[SENSOR_NUM] = { 63456, 62931, 62918, 63271, 63080 };
+static float y[SENSOR_NUM];
+
 const struct sys_mode_api test_adc_api =
 {
     .init = test_adc_init,
@@ -45,6 +49,36 @@ static void test_adc_run()
         printf("ADC%d: %d ", i + 1, buf[i]);
     }
     printf("\r\n");
+
+    for (int i = 0; i < 5; i++)
+    {
+        y[i] = (((float)sensor_max[i] - (float)buf[i]) / (float)(sensor_max[i] - sensor_min[i]));
+        if (y[i] < 0)
+        {
+            y[i] = 0;
+        }
+        else if (y[i] > 1)
+        {
+            y[i] = 1;
+        }
+    }
+    
+    for (int i = 0; i < 5; i++)
+    {
+        printf("Normalized ADC%d: %d ", i + 1, (int)(100.00 * y[i]));
+    }
+    printf("\r\n");
+
+    float center = 0;
+    float acc = 0;
+    for (int i = 0; i < 5; i++)
+    {
+        center += (y[i] * (float)16 * (float)(2 - i));
+        acc += y[i];
+    }
+    center /= acc;
+    printf("Center = %d mm\r\n", (int)center);
+
     HAL_Delay(1000);
 }
 

@@ -52,7 +52,45 @@ JPEG_ConfTypeDef jpeg_config = {
 
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef* hdcmi)
 {
-	/* Restart a new single-frame snapshot for the next frame event. */
+	uint32_t const expected_transfers = IMAGE_SIZE / 4U;
+	uint32_t const remaining = __HAL_DMA_GET_COUNTER(&hdma_dcmi);
+
+	/*
+	 * Nếu nhiễu dây PCLK làm thừa/thiếu byte, bộ đếm DMA (NDTR) sẽ nằm lửng lơ
+	 * thay vì nằm sát mốc 0 hoặc expected_transfers khi kết thúc frame.
+	 * Cần reset lại DMA Multi-Buffer ngay trong khoảng nghỉ VBLANK để khung hình sau thẳng hàng.
+	 */
+	if (remaining != expected_transfers && remaining != 0U)
+	{
+		DMA_Stream_TypeDef* stream = (DMA_Stream_TypeDef*)hdma_dcmi.Instance;
+
+		/* Dừng DMA stream ngay lập tức */
+		stream->CR &= ~DMA_SxCR_EN;
+		while ((stream->CR & DMA_SxCR_EN) != 0U)
+		{
+		}
+
+		/* Xóa sạch các cờ ngắt DMA tồn đọng của frame lỗi */
+		__HAL_DMA_CLEAR_FLAG(&hdma_dcmi,
+			__HAL_DMA_GET_TC_FLAG_INDEX(&hdma_dcmi) |
+			__HAL_DMA_GET_HT_FLAG_INDEX(&hdma_dcmi) |
+			__HAL_DMA_GET_TE_FLAG_INDEX(&hdma_dcmi) |
+			__HAL_DMA_GET_DME_FLAG_INDEX(&hdma_dcmi) |
+			__HAL_DMA_GET_FE_FLAG_INDEX(&hdma_dcmi));
+
+		/* Reset trạng thái HAL DMA để gọi lại MultiBufferStart */
+		hdma_dcmi.State = HAL_DMA_STATE_READY;
+		__HAL_UNLOCK(&hdma_dcmi);
+
+		HAL_DMAEx_MultiBufferStart_IT(
+			&hdma_dcmi,
+			(uint32_t)&hdcmi->Instance->DR,
+			(uint32_t)image_buffers[0],
+			(uint32_t)image_buffers[1],
+			expected_transfers);
+	}
+
+	/* Bật lại snapshot cho khung hình kế tiếp (tự đợi cạnh VSYNC) */
 	hdcmi->Instance->CR |= DCMI_CR_CAPTURE;
 	__HAL_DCMI_ENABLE_IT(hdcmi, DCMI_IT_FRAME | DCMI_IT_ERR | DCMI_IT_OVR);
 }
@@ -66,7 +104,6 @@ static void camera_dma_complete(DMA_HandleTypeDef* hdma)
 	image_done = true;
 }
 
-static int camera_restart_capture(void);
 
 static void camera_dma_error(DMA_HandleTypeDef* hdma)
 {
@@ -137,7 +174,8 @@ int camera_init_yuy2(void)
 
 	ov5640_light_mode(0);
 	ov5640_color_saturation(3);
-	ov5640_brightness(8);
+	ov5640_brightness(6);
+	ov5640_exposure(0);
 	ov5640_contrast(3);
 	ov5640_sharpness(33);
 	ov5640_yuy2_mode();
@@ -159,11 +197,7 @@ int camera_capture(void)
 	rgb_ready_mask = 0U;
 	rgb_read_index = 0U;
 
-	__HAL_DCMI_DISABLE_IT(&hdcmi,
-		DCMI_IT_FRAME | DCMI_IT_LINE | DCMI_IT_VSYNC |
-		DCMI_IT_ERR | DCMI_IT_OVR);
-	hdcmi.Instance->CR &= ~(DCMI_CR_CAPTURE);
-
+	HAL_DCMI_Stop(&hdcmi);
 	(void)HAL_DMA_Abort(&hdma_dcmi);
 
 	SCB_InvalidateDCache_by_Addr((uint32_t*)image_buffers[0], IMAGE_SIZE);

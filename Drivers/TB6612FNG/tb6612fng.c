@@ -73,8 +73,8 @@ int tb6612fng_set_direction(motor_id_t id, direction_t direction)
     }
     if(id == MOTOR_RIGHT || id == MOTOR_ALL)
     {
-        HAL_GPIO_WritePin(BIN_1_GPIO_Port, BIN_1_Pin, in1);
-        HAL_GPIO_WritePin(BIN_2_GPIO_Port, BIN_2_Pin, in2);
+        HAL_GPIO_WritePin(BIN_1_GPIO_Port, BIN_1_Pin, in2);
+        HAL_GPIO_WritePin(BIN_2_GPIO_Port, BIN_2_Pin, in1);
     }
 
     if(id != MOTOR_LEFT && id != MOTOR_RIGHT && id != MOTOR_ALL)
