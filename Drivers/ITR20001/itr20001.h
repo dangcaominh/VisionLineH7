@@ -21,7 +21,7 @@
 
 typedef struct
 {
-	float e_y;       /* Lateral line error in meters. */
+	float e_y;       /* Lateral line error in milimeters. */
 	float e_phi;     /* Approximate heading error in radians. */
 } line_sensor_error_t;
 

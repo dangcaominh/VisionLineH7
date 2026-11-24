@@ -24,19 +24,13 @@
 #include "arm_math.h"
 
 #define PIXELS (IMAGE_WIDTH * IMAGE_HEIGHT)
-#define ROI_TOP (IMAGE_HEIGHT / 2U)
+#define ROI_TOP 200
 #define CAMERA_VIEW_WIDTH_MM 90.0F
-#define LINE_PIXEL_THRESHOLD 128U
+#define LINE_PIXEL_THRESHOLD 50U
 #define RAD_TO_DEG 57.2957795F
-#define LINE_CAMERA_SAMPLETIME_S 0.02F
-#define LINE_CAMERA_BASE_DUTY 50.0F
-#define LINE_CAMERA_STEER_LIMIT 50.0F
-
-static const float H[3][3] = {
-    { -2.09310F,  0.0000000F,   342.396F },
-    {  0.00000F,  1.5126900F, -1120.713F },
-    {  0.00000F, -0.0357360F,     1.000F }
-};
+#define LINE_CAMERA_SAMPLETIME_S 0.01F
+#define LINE_CAMERA_BASE_DUTY 100.0F
+#define LINE_CAMERA_STEER_LIMIT 100.0F
 
 extern uint8_t gray[PIXELS];
 extern uint8_t ycbcr_buffer[IMAGE_SIZE];
@@ -44,30 +38,72 @@ extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 
 static struct pid_controller steering_pid;
 
+
+static const float Homography[3][3] = {
+    { -0.3755965F, -0.0000000F, 60.09544F },
+    { 0.0011823F, 0.0251213F, -113.79642F },
+    { -0.0000691F, -0.0095638F, 1.00000F }
+};
+
+static arm_matrix_instance_f32 H = {
+    .numRows = 3,
+    .numCols = 3,
+    .pData   = &Homography[0][0]
+};
+
+/**
+ * @brief Chuyen toa do pixel (u, v) tren anh 320x240 sang toa do san (x_mm, y_mm)
+ * @param u      Toa do cot [0 .. 319]
+ * @param v      Toa do hang [0 .. 239]
+ * @param x_mm   Con tro nhan toa do ngang (mm): am ben trai, duong ben phai
+ * @param y_mm   Con tro nhan toa do doc (mm): khoang cach phia truoc truc banh xe
+ * @return true neu diem nam duoi duong chan troi (hop le), false neu nguoc lai
+ */
+bool pixel_to_ground(float u, float v, float* x, float* y)
+{
+    float p[3] = { u, v, 1.0F };
+    float q[3];
+    arm_mat_vec_mult_f32(&H, p, q);
+
+    if (q[2] <= 1e-4f && q[2] >= -1e-4f) {
+        return false;
+    }
+
+    *x = q[0] / q[2];
+    *y = q[1] / q[2];
+    return true;
+}
+
 static int calculate_line_error(const uint8_t *image, float *e_y, float *e_phi, float* tan_e_phi)
 {
     const uint32_t upper_top = ROI_TOP;
     const uint32_t upper_bottom = ROI_TOP + ((IMAGE_HEIGHT - ROI_TOP) / 2U);
     const uint32_t lower_bottom = IMAGE_HEIGHT;
-    uint32_t upper_sum = 0U;
+
+    uint32_t upper_sum_u = 0U;
+    uint32_t upper_sum_v = 0U;
     uint32_t upper_count = 0U;
-    uint32_t lower_sum = 0U;
+
+    uint32_t lower_sum_u = 0U;
+    uint32_t lower_sum_v = 0U;
     uint32_t lower_count = 0U;
 
-    for (uint32_t y = upper_top; y < lower_bottom; y++)
+    for (uint32_t v = upper_top; v < lower_bottom; v++)
     {
-        for (uint32_t x = 0U; x < IMAGE_WIDTH; x++)
+        for (uint32_t u = 0U; u < IMAGE_WIDTH; u++)
         {
-            if (image[y * IMAGE_WIDTH + x] < LINE_PIXEL_THRESHOLD)
+            if (image[v * IMAGE_WIDTH + u] < LINE_PIXEL_THRESHOLD)
             {
-                if (y < upper_bottom)
+                if (v < upper_bottom)
                 {
-                    upper_sum += x;
+                    upper_sum_u += u;
+                    upper_sum_v += v;
                     upper_count++;
                 }
                 else
                 {
-                    lower_sum += x;
+                    lower_sum_u += u;
+                    lower_sum_v += v;
                     lower_count++;
                 }
             }
@@ -79,16 +115,27 @@ static int calculate_line_error(const uint8_t *image, float *e_y, float *e_phi, 
         return -1;
     }
 
-    float upper_x = (float)upper_sum / (float)upper_count;
-    float lower_x = (float)lower_sum / (float)lower_count;
-    float image_center = (float)(IMAGE_WIDTH - 1U) * 0.5F;
-    upper_x = image_center + (upper_x - image_center) * (9.0 / 12.0);
-    *e_y = (image_center - lower_x) * CAMERA_VIEW_WIDTH_MM / (float)IMAGE_WIDTH;
-    float dx = upper_x - lower_x;
-    float dy = (float)(upper_bottom - upper_top);
+    float upper_u = ((float)upper_sum_u / (float)upper_count);
+    float upper_v = ((float)upper_sum_v / (float)upper_count);
+
+    float lower_u = ((float)lower_sum_u / (float)lower_count);
+    float lower_v = ((float)lower_sum_v / (float)lower_count);
+
+    float upper_x = 0U;
+    float upper_y = 0U;
+
+    float lower_x = 0U;
+    float lower_y = 0U;
+
+    pixel_to_ground(upper_u, upper_v, &upper_x, &upper_y);
+    pixel_to_ground(lower_u, lower_v, &lower_x, &lower_y);
+
     
-    *tan_e_phi = dx / dy;
+    float dx = upper_x - lower_x;
+    float dy = upper_y - lower_y;
+    *e_y = -lower_x;
     arm_atan2_f32(dx, dy, e_phi);
+    *tan_e_phi = dx / dy;
 
     return 0;
 }
@@ -105,8 +152,9 @@ static int line_camera_init()
 {
     tb6612fng_init();
 
+
     if (pid_init(&steering_pid,
-                 0.6F, 0.3F, 0.075F,
+                 1.0F, 0.6F, 0.1F,
                  LINE_CAMERA_SAMPLETIME_S,
                  -LINE_CAMERA_STEER_LIMIT,
                  LINE_CAMERA_STEER_LIMIT) != 0)
@@ -163,23 +211,23 @@ static void line_camera_run()
     if (calculate_line_error(gray, &e_y, &e_phi, &tan_e_phi) == 0)
     {
         printf("e_y=%.2f mm, e_phi=%.2f deg\r\n", e_y, e_phi * RAD_TO_DEG);
-
+        static float old_steering = 0;
+        static float old_steering2 = 0;
         float steering;
-        float control_error = e_y + 10.0F * tan_e_phi;
+        float control_error = e_y;// +90.0F * tan_e_phi;
         printf("Real control error=%.2f\r\n", control_error);
         if (pid_update(&steering_pid, 0.0F, control_error, &steering) == 0)
         {
             float left_duty =
-                LINE_CAMERA_BASE_DUTY + steering;
+                LINE_CAMERA_BASE_DUTY + old_steering2;
             float right_duty =
-                LINE_CAMERA_BASE_DUTY - steering;
-                
+                LINE_CAMERA_BASE_DUTY - old_steering2;
+            old_steering2 = old_steering;
+            old_steering = steering;
             left_duty = pid_clamp(left_duty, 0.0F, 100.0F);
             right_duty = pid_clamp(right_duty, 0.0F, 100.0F);
             printf("Left duty=%.2f, Right duty=%.2f\r\n", left_duty, right_duty);
                 
-
-
             tb6612fng_standby();
             tb6612fng_set_direction(MOTOR_LEFT, MOTOR_FORWARD);
             tb6612fng_set_direction(MOTOR_RIGHT, MOTOR_FORWARD);

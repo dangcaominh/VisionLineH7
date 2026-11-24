@@ -23,6 +23,10 @@ file(GLOB_RECURSE IMAGE_PROCESSING_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR
 file(GLOB_RECURSE KALMAN_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Modules/Kalman/*.c")
 file(GLOB_RECURSE PID_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Modules/PID/*.c")
 file(GLOB_RECURSE LQR_SOURCES CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Application/Modules/LQR/*.c")
+file(GLOB MATRIX_SOURCES
+    "${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Source/MatrixFunctions/*.c"
+)
+list(FILTER MATRIX_SOURCES EXCLUDE REGEX ".*/(MatrixFunctions|MatrixFunctionsF16)\\.c$")
 file(GLOB FAST_MATH_SOURCES
     "${CMAKE_SOURCE_DIR}/Drivers/CMSIS/DSP/Source/FastMathFunctions/*.c"
 )
@@ -73,8 +77,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${KALMAN_SOURCES}
     ${PID_SOURCES}
     ${LQR_SOURCES}
+    ${MATRIX_SOURCES}
     ${FAST_MATH_SOURCES}
-    Drivers/CMSIS/DSP/Source/MatrixFunctions/arm_mat_mult_f32.c
     tinyusb/src/class/cdc/cdc_device.c
     tinyusb/src/class/video/video_device.c
     tinyusb/src/tusb.c

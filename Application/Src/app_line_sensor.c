@@ -39,7 +39,7 @@ static int app_line_sensor_init(void)
 {
     tb6612fng_init();
 
-    if (pid_init(&steering_pid, 1.6F, 1.0F, 0.2F,
+    if (pid_init(&steering_pid, 1.8F, 1.0F, 0.2F,
                  LINE_SENSOR_SAMPLETIME_S,
                  -LINE_SENSOR_STEER_LIMIT,
                  LINE_SENSOR_STEER_LIMIT) != 0)
@@ -58,12 +58,12 @@ static void app_line_sensor_run(void)
         return;
     }
     last = HAL_GetTick();
-
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
     if (line_sensor_read(adc_buffer) != HAL_OK)
     {
         return;
     }
-
+    
     if (line_sensor_calculate_error(adc_buffer, &line_error) != 0)
     {
         pid_reset(&steering_pid);
@@ -84,6 +84,7 @@ static void app_line_sensor_run(void)
     right_duty = pid_clamp(right_duty, 0.0F, 100.0F);
 
     tb6612fng_standby();
+    tb6612fng_set_direction(MOTOR_ALL, MOTOR_FORWARD);
     tb6612fng_set_speed(MOTOR_LEFT, left_duty);
     tb6612fng_set_speed(MOTOR_RIGHT, right_duty);
     tb6612fng_enable();

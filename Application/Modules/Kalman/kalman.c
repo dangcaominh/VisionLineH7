@@ -28,7 +28,7 @@
  * @param R Measurement noise covariance.
  * @return 0 on success, -1 on failure.
  */
-int kalman_init(struct kalman_filter* filter, uint16_t n, float32_t* x, float32_t* P, float32_t Q, float32_t R)
+int kalman_init(struct kalman_filter* filter, struct kalman_filter_data* data, uint16_t n, float32_t* x, float32_t* P, float32_t Q, float32_t R)
 {
     if (filter == NULL || filter->data == NULL || x == NULL || P == NULL || n == 0)
     {
@@ -36,7 +36,7 @@ int kalman_init(struct kalman_filter* filter, uint16_t n, float32_t* x, float32_
         return -1;
     }
 
-    struct kalman_filter_data* data = filter->data;
+    filter->data = data;
     kalman_stop(filter);
 
     data->x = malloc(n * sizeof(float32_t));
