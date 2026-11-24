@@ -174,7 +174,7 @@ int camera_init_yuy2(void)
 
 	ov5640_light_mode(0);
 	ov5640_color_saturation(3);
-	ov5640_brightness(6);
+	ov5640_brightness(4);
 	ov5640_exposure(0);
 	ov5640_contrast(3);
 	ov5640_sharpness(33);

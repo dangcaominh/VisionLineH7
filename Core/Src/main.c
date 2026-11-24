@@ -381,7 +381,7 @@ void SystemClock_Config(void)
     Error_Handler();
   }
   __HAL_RCC_PLLCLKOUT_ENABLE(RCC_PLL1_DIVP);
-  HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_PLLCLK, RCC_MCODIV_13);
+  HAL_RCC_MCOConfig(RCC_MCO2, RCC_MCO2SOURCE_PLLCLK, RCC_MCODIV_15);
 }
 
 /**
@@ -1060,7 +1060,7 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pin = XCLK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF0_MCO;
   HAL_GPIO_Init(XCLK_GPIO_Port, &GPIO_InitStruct);
 

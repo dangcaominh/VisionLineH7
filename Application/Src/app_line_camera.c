@@ -25,12 +25,18 @@
 
 #define PIXELS (IMAGE_WIDTH * IMAGE_HEIGHT)
 #define ROI_TOP (IMAGE_HEIGHT / 2U)
-#define CAMERA_VIEW_WIDTH_MM 120.0F
+#define CAMERA_VIEW_WIDTH_MM 90.0F
 #define LINE_PIXEL_THRESHOLD 128U
 #define RAD_TO_DEG 57.2957795F
-#define LINE_CAMERA_SAMPLETIME_S 0.01F
+#define LINE_CAMERA_SAMPLETIME_S 0.02F
 #define LINE_CAMERA_BASE_DUTY 50.0F
-#define LINE_CAMERA_STEER_LIMIT 40.0F
+#define LINE_CAMERA_STEER_LIMIT 50.0F
+
+static const float H[3][3] = {
+    { -2.09310F,  0.0000000F,   342.396F },
+    {  0.00000F,  1.5126900F, -1120.713F },
+    {  0.00000F, -0.0357360F,     1.000F }
+};
 
 extern uint8_t gray[PIXELS];
 extern uint8_t ycbcr_buffer[IMAGE_SIZE];
@@ -38,7 +44,7 @@ extern DMA_HandleTypeDef hdma_memtomem_dma1_stream1;
 
 static struct pid_controller steering_pid;
 
-static int calculate_line_error(const uint8_t *image, float *e_y, float *e_phi)
+static int calculate_line_error(const uint8_t *image, float *e_y, float *e_phi, float* tan_e_phi)
 {
     const uint32_t upper_top = ROI_TOP;
     const uint32_t upper_bottom = ROI_TOP + ((IMAGE_HEIGHT - ROI_TOP) / 2U);
@@ -76,11 +82,12 @@ static int calculate_line_error(const uint8_t *image, float *e_y, float *e_phi)
     float upper_x = (float)upper_sum / (float)upper_count;
     float lower_x = (float)lower_sum / (float)lower_count;
     float image_center = (float)(IMAGE_WIDTH - 1U) * 0.5F;
-
+    upper_x = image_center + (upper_x - image_center) * (9.0 / 12.0);
     *e_y = (image_center - lower_x) * CAMERA_VIEW_WIDTH_MM / (float)IMAGE_WIDTH;
-
-    float dx = lower_x - upper_x;
+    float dx = upper_x - lower_x;
     float dy = (float)(upper_bottom - upper_top);
+    
+    *tan_e_phi = dx / dy;
     arm_atan2_f32(dx, dy, e_phi);
 
     return 0;
@@ -99,7 +106,7 @@ static int line_camera_init()
     tb6612fng_init();
 
     if (pid_init(&steering_pid,
-                 0.8F, 0.5F, 0.1F,
+                 0.6F, 0.3F, 0.075F,
                  LINE_CAMERA_SAMPLETIME_S,
                  -LINE_CAMERA_STEER_LIMIT,
                  LINE_CAMERA_STEER_LIMIT) != 0)
@@ -152,12 +159,13 @@ static void line_camera_run()
 
     float e_y;
     float e_phi;
-    if (calculate_line_error(gray, &e_y, &e_phi) == 0)
+    float tan_e_phi;
+    if (calculate_line_error(gray, &e_y, &e_phi, &tan_e_phi) == 0)
     {
         printf("e_y=%.2f mm, e_phi=%.2f deg\r\n", e_y, e_phi * RAD_TO_DEG);
 
         float steering;
-        float control_error = e_y - 10.0F * arm_tan_f32(e_phi);
+        float control_error = e_y + 10.0F * tan_e_phi;
         printf("Real control error=%.2f\r\n", control_error);
         if (pid_update(&steering_pid, 0.0F, control_error, &steering) == 0)
         {
@@ -172,19 +180,19 @@ static void line_camera_run()
                 
 
 
-            // tb6612fng_standby();
-            // tb6612fng_set_direction(MOTOR_LEFT, MOTOR_FORWARD);
-            // tb6612fng_set_direction(MOTOR_RIGHT, MOTOR_FORWARD);
-            // tb6612fng_set_speed(MOTOR_LEFT, left_duty);
-            // tb6612fng_set_speed(MOTOR_RIGHT, right_duty);
-            // tb6612fng_enable();
+            tb6612fng_standby();
+            tb6612fng_set_direction(MOTOR_LEFT, MOTOR_FORWARD);
+            tb6612fng_set_direction(MOTOR_RIGHT, MOTOR_FORWARD);
+            tb6612fng_set_speed(MOTOR_LEFT, left_duty);
+            tb6612fng_set_speed(MOTOR_RIGHT, right_duty);
+            tb6612fng_enable();
         }
     }
     else
     {
         printf("Line not found in lower ROI\r\n");
         pid_reset(&steering_pid);
-        tb6612fng_stop();
+        tb6612fng_brake();
     }
     grayscale_to_yuy2(gray, ycbcr_buffer);
 
