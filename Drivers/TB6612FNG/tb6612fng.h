@@ -37,4 +37,5 @@ int tb6612fng_set_speed(motor_id_t id, float32_t duty);
 void tb6612fng_enable();
 void tb6612fng_standby();
 void tb6612fng_stop();
+void tb6612fng_brake(void);
 #endif

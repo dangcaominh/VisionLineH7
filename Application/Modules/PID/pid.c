@@ -63,11 +63,9 @@ int pid_update(struct pid_controller *controller,
                float measurement,
                float *output)
 {
-	if (controller == NULL ||
-	    output == NULL ||
-	    !controller->initialized)
+	if (controller == NULL || output == NULL || !controller->initialized)
 	{
-		return -1;
+		return 1;
 	}
 
 	float error = setpoint - measurement;

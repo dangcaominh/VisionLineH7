@@ -79,6 +79,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${LQR_SOURCES}
     ${MATRIX_SOURCES}
     ${FAST_MATH_SOURCES}
+    Drivers/CMSIS/DSP/Source/CommonTables/arm_common_tables.c
     tinyusb/src/class/cdc/cdc_device.c
     tinyusb/src/class/video/video_device.c
     tinyusb/src/tusb.c

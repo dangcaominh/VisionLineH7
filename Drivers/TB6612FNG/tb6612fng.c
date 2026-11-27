@@ -165,12 +165,10 @@ void tb6612fng_stop()
 
 void tb6612fng_brake(void)
 {
-    // Dừng PWM trước
     tb6612fng_standby();
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 0);
 
-    // Hai chân mỗi motor phải kéo cùng mức
     HAL_GPIO_WritePin(AIN_1_GPIO_Port, AIN_1_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(AIN_2_GPIO_Port, AIN_2_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(BIN_1_GPIO_Port, BIN_1_Pin, GPIO_PIN_SET);

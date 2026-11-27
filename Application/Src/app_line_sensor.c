@@ -16,7 +16,10 @@
 #include "app_line_sensor.h"
 #include "itr20001.h"
 #include "tb6612fng.h"
+#include "usb_video.h"
+#include "camera.h"
 #include "pid.h"
+#include "tusb.h"
 #include <stdio.h>
 
 #define LINE_SENSOR_SAMPLETIME_S  0.005F
@@ -26,6 +29,7 @@
 static uint16_t adc_buffer[SENSOR_NUM];
 static line_sensor_error_t line_error;
 static struct pid_controller steering_pid;
+extern sys_run_mode_t run_mode;
 
 
 const struct sys_mode_api line_sensor_api =
@@ -39,7 +43,9 @@ static int app_line_sensor_init(void)
 {
     tb6612fng_init();
 
-    if (pid_init(&steering_pid, 1.8F, 1.0F, 0.2F,
+    camera_init_yuy2();
+
+    if (pid_init(&steering_pid, 2.0F, 1.0F, 0.2F,
                  LINE_SENSOR_SAMPLETIME_S,
                  -LINE_SENSOR_STEER_LIMIT,
                  LINE_SENSOR_STEER_LIMIT) != 0)
@@ -58,7 +64,7 @@ static void app_line_sensor_run(void)
         return;
     }
     last = HAL_GetTick();
-    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+
     if (line_sensor_read(adc_buffer) != HAL_OK)
     {
         return;
@@ -88,6 +94,28 @@ static void app_line_sensor_run(void)
     tb6612fng_set_speed(MOTOR_LEFT, left_duty);
     tb6612fng_set_speed(MOTOR_RIGHT, right_duty);
     tb6612fng_enable();
+
+    if (!tud_mounted() || !tud_video_n_streaming(0, 0))
+    {
+        return;
+    }
+
+    if (usb_video_is_busy())
+	{
+		return;
+	}
+    camera_capture();
+    
+    uint8_t* ptr = camera_get_image();
+	if (ptr == NULL)
+	{
+		return;
+    }
+
+    SCB_InvalidateDCache_by_Addr((uint32_t*)ptr, IMAGE_SIZE);
+    
+    usb_set_buffer(ptr, IMAGE_SIZE);
+    usb_send_frame();
 }
 
 static void app_line_sensor_stop(void)

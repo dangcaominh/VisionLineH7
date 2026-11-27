@@ -56,23 +56,73 @@ void grayscale_to_binary(uint8_t *gray, uint8_t threshold)
     }
 }
 
-void detect_line(uint8_t *gray)
+/**
+ * @brief To mau 1 pixel tai toa do (u, v) tren buffer dinh dang YUY2 (Y0 U Y1 V)
+ */
+static void yuy2_set_pixel(uint8_t *yuy2, int32_t u, int32_t v, uint8_t y, uint8_t cb, uint8_t cr)
 {
-    for (uint32_t y = 0; y < IMAGE_HEIGHT; y++)
+    if (u < 0 || u >= (int32_t)IMAGE_WIDTH || v < 0 || v >= (int32_t)IMAGE_HEIGHT)
     {
-        uint32_t row = y * IMAGE_WIDTH;
-        uint8_t previous = gray[row];
-        gray[row] = 255U;
+        return;
+    }
 
-        for (uint32_t x = 1; x < IMAGE_WIDTH; x++)
+    uint32_t row_offset = (uint32_t)v * IMAGE_WIDTH * 2U;
+    uint32_t y_idx      = row_offset + (uint32_t)u * 2U;
+    uint32_t uv_idx     = row_offset + ((uint32_t)u & ~1U) * 2U;
+
+    yuy2[y_idx]      = y;
+    yuy2[uv_idx + 1] = cb;
+    yuy2[uv_idx + 3] = cr;
+}
+
+/**
+ * @brief Ve cham tron ban kinh radius tai (cu, cv) tren buffer YUY2
+ */
+static void yuy2_draw_circle(uint8_t *yuy2, int32_t cu, int32_t cv, int32_t radius, uint8_t y, uint8_t cb, uint8_t cr)
+{
+    for (int32_t dv = -radius; dv <= radius; dv++)
+    {
+        for (int32_t du = -radius; du <= radius; du++)
         {
-            uint32_t index = row + x;
-            uint8_t current = gray[index];
-
-            gray[index] = (current != previous) ? 0U : 255U;
-            previous = current;
+            if ((du * du + dv * dv) <= (radius * radius))
+            {
+                yuy2_set_pixel(yuy2, cu + du, cv + dv, y, cb, cr);
+            }
         }
     }
 }
 
+/**
+ * @brief Ve doan thang noi (u0, v0) va (u1, v1) tren buffer YUY2 (Bresenham)
+ */
+static void yuy2_draw_line(uint8_t *yuy2, int32_t u0, int32_t v0, int32_t u1, int32_t v1, uint8_t y, uint8_t cb, uint8_t cr)
+{
+    int32_t du  = (u1 > u0) ? (u1 - u0) : (u0 - u1);
+    int32_t dv  = (v1 > v0) ? (v1 - v0) : (v0 - v1);
+    int32_t su  = (u0 < u1) ? 1 : -1;
+    int32_t sv  = (v0 < v1) ? 1 : -1;
+    int32_t err = du - dv;
+
+    while (1)
+    {
+        yuy2_set_pixel(yuy2, u0, v0, y, cb, cr);
+
+        if (u0 == u1 && v0 == v1)
+        {
+            break;
+        }
+
+        int32_t e2 = 2 * err;
+        if (e2 > -dv)
+        {
+            err -= dv;
+            u0 += su;
+        }
+        if (e2 < du)
+        {
+            err += du;
+            v0 += sv;
+        }
+    }
+}
 

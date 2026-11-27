@@ -151,8 +151,8 @@ const uint16_t ov5640_yuy2_init[]=
 	OV5640_SC_PLL_CONTRL1, 0x21, // PLL
 	OV5640_SC_PLL_CONTRL2, 0x69, // PLL
 	OV5640_LIGHTMETER1_TH_LOW, 0x07, // Light-meter threshold
-	OV5640_TIMING_TC_REG20, 0x46, // Vertical flip
-	OV5640_TIMING_TC_REG21, 0x00, // Disable horizontal mirror
+	OV5640_TIMING_TC_REG20, 0x40, // Vertical flip
+	OV5640_TIMING_TC_REG21, 0x06, // Disable horizontal mirror
 	OV5640_TIMING_X_INC, 0x71, // Horizontal sampling
 	OV5640_TIMING_Y_INC, 0x35, // Vertical sampling
 	OV5640_TIMING_HS_HIGH, 0x00, // Crop start X high byte
